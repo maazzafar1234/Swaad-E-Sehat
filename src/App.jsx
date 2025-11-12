@@ -16,8 +16,8 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import OrderConfirmation from './pages/OrderConfirmation';
 import WishlistPage from './pages/WishlistPage';
-
-// Context
+import Account from './pages/account';
+import UserDashboard from './pages/UserDashboard';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
@@ -43,6 +43,11 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/order-confirmation" element={<OrderConfirmation />} />
+
+                {/* Add more routes as needed */}
+                <Route path="*" element={<h2>404: Page Not Found</h2>} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/user/dashboard" element={<UserDashboard />} />
               </Routes>
             </main>
             <Footer />

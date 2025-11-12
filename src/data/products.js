@@ -4,8 +4,8 @@ export const products = [
     id: 1,
     name: 'Aata Dry Fruit Pinni',
     slug: 'aata-dry-fruit-pinni',
-    price: 1095,
-    salePrice: 1095,
+    price: 1,
+    salePrice: 1,
     images: [
       '/images/MUSCLELADU.jpg'
     ],
@@ -22,16 +22,16 @@ export const products = [
       {
         id: '500g',
         name: '500g Pack',
-        price: 550,
-        originalPrice: 1150,
+        price: 1,
+        originalPrice: 1,
         stock: 25,
         weight: '500g'
       },
       {
         id: '1kg',
         name: '1kg Pack',
-        price: 1095,
-        originalPrice: 1150,
+        price: 1,
+        originalPrice: 1,
         stock: 15,
         weight: '1kg'
       }

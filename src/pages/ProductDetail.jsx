@@ -1,302 +1,303 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FiStar, FiShoppingCart, FiHeart, FiShare2, FiMinus, FiPlus, FiTruck, FiShield, FiRefreshCw } from 'react-icons/fi';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  FiStar, 
+  FiShoppingCart, 
+  FiHeart, 
+  FiShare2, 
+  FiMinus, 
+  FiPlus, 
+  FiTruck, 
+  FiShield, 
+  FiRefreshCw,
+  FiChevronRight
+} from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext'; // <-- IMPORTED
 import { getProductBySlug, getProductById } from '../data/products';
 import { toast } from 'react-toastify';
-import './ProductDetail.css';
 
+// --- Main Component ---
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const [selectedVariant, setSelectedVariant] = useState(0);
-  const [quantity, setQuantity] = useState(0);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [activeTab, setActiveTab] = useState('description');
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist(); // <-- ADDED
 
+  // Fetch product (your logic)
   const product = getProductBySlug(id) || getProductById(parseInt(id));
 
-  if (!product) {
+  // --- State ---
+  // Use the variant object itself, not the index
+  const [selectedVariant, setSelectedVariant] = useState(product?.variants?.[0]);
+  // Default quantity to 1 for better UX
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [activeTab, setActiveTab] = useState('description');
+
+  // --- "Not Found" State ---
+  if (!product || !selectedVariant) {
     return (
-      <div className="product-detail">
-        <div className="container">
-          <div className="product-not-found">
-            <h1>Product Not Found</h1>
-            <p>The product you're looking for doesn't exist.</p>
-            <button onClick={() => navigate('/products')} className="btn btn-primary">
-              Back to Products
-            </button>
-          </div>
+      <div className="w-full bg-slate-50 pt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-4xl font-bold font-serif text-slate-800 mb-4">Product Not Found</h1>
+          <p className="text-lg text-slate-600 mb-8">The product you're looking for doesn't exist or may have been removed.</p>
+          <button 
+            onClick={() => navigate('/products')} 
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all"
+          >
+            Back to Products
+          </button>
         </div>
       </div>
     );
   }
 
+  // --- Derived State & Variables ---
+  const isWishlisted = isInWishlist(product.id); // <-- From context
+  const currentStock = selectedVariant.stock || product.stock || 0;
+  const hasDiscount = selectedVariant.originalPrice > selectedVariant.price;
+  const discountPercentage = hasDiscount
+    ? Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)
+    : 0;
+
+  // --- Event Handlers ---
   const handleAddToCart = () => {
-    if (quantity <= 0) {
-      toast.error('Please select a quantity greater than 0');
-      return;
-    }
-    const variant = product.variants[selectedVariant];
     const productToAdd = {
       ...product,
-      price: variant.price,
-      salePrice: variant.price,
-      originalPrice: variant.originalPrice,
-      variant: variant.id,
-      variantName: variant.name,
+      price: selectedVariant.price,
+      originalPrice: selectedVariant.originalPrice,
+      variant: selectedVariant.id,
+      variantName: selectedVariant.name,
       image: product.images?.[0] || product.image || '/images/placeholder.jpg'
     };
     
     addToCart(productToAdd, quantity);
-    toast.success(`${product.name} (${variant.name}) added to cart!`);
+    toast.success(`${product.name} (${selectedVariant.name}) added to cart!`);
   };
 
   const handleBuyNow = () => {
-    if (quantity <= 0) {
-      toast.error('Please select a quantity greater than 0');
-      return;
-    }
     handleAddToCart();
     navigate('/cart');
   };
 
-  const handleQuantityChange = (change) => {
-    const newQuantity = quantity + change;
-    const maxStock = product.variants[selectedVariant]?.stock || product.stock || 10;
-    if (newQuantity >= 0 && newQuantity <= maxStock) {
+  const handleQuantityChange = (amount) => {
+    const newQuantity = quantity + amount;
+    // Prevent quantity from going below 1 or above stock
+    if (newQuantity >= 1 && newQuantity <= currentStock) {
       setQuantity(newQuantity);
     }
   };
 
-  const discountPercentage = Math.round(((product.price - product.salePrice) / product.price) * 100);
-  const currentStock = product.variants[selectedVariant]?.stock || product.stock || 0;
+  const handleWishlistClick = () => {
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+      toast.info(`${product.name} removed from wishlist`);
+    } else {
+      addToWishlist(product);
+      toast.success(`${product.name} added to wishlist!`);
+    }
+  };
 
   return (
-    <div className="product-detail">
-      <div className="container">
+    <div className="w-full bg-white pt-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        
         {/* Breadcrumb */}
-        <nav className="breadcrumb">
-          <a href="/">Home</a>
-          <span>/</span>
-          <a href="/products">Products</a>
-          <span>/</span>
-          <span>{product.name}</span>
+        <nav className="flex items-center text-sm text-slate-500 mb-8">
+          <Link to="/" className="hover:text-amber-600">Home</Link>
+          <FiChevronRight className="w-4 h-4 mx-1" />
+          <Link to="/products" className="hover:text-amber-600">Products</Link>
+          <FiChevronRight className="w-4 h-4 mx-1" />
+          <span className="font-medium text-slate-700 truncate">{product.name}</span>
         </nav>
 
-        <div className="product-content">
-          {/* Product Images */}
-          <div className="product-images">
-            <div className="main-image">
+        {/* --- Main Product Grid (Images + Info) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          
+          {/* Column 1: Product Images */}
+          <div className="flex flex-col gap-4">
+            <div className="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden shadow-lg">
               <img 
                 src={product.images[selectedImage]} 
                 alt={product.name}
-                className="product-main-image"
+                className="w-full h-full object-cover"
               />
-              {discountPercentage > 0 && (
-                <div className="discount-badge">{discountPercentage}% OFF</div>
+              {hasDiscount && (
+                <div className="absolute top-4 left-4 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full">
+                  {discountPercentage}% OFF
+                </div>
               )}
             </div>
             
-            <div className="thumbnail-images">
+            <div className="grid grid-cols-5 gap-3">
               {product.images.map((image, index) => (
                 <img
                   key={index}
                   src={image}
                   alt={`${product.name} ${index + 1}`}
-                  className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                  className={`w-full aspect-square rounded-lg object-cover cursor-pointer transition-all ${
+                    selectedImage === index
+                      ? 'ring-2 ring-amber-500 ring-offset-2'
+                      : 'opacity-70 hover:opacity-100'
+                  }`}
                   onClick={() => setSelectedImage(index)}
                 />
               ))}
             </div>
           </div>
 
-          {/* Product Info */}
-          <div className="product-info">
-            <div className="product-header">
-              <div className="product-badges">
-                {product.isNew && <span className="badge badge-new">New</span>}
-                {product.isBestSeller && <span className="badge badge-bestseller">Best Seller</span>}
+          {/* Column 2: Product Info */}
+          <div className="flex flex-col gap-5">
+            {/* Header: Badges, Title, Rating */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                {product.isNew && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600">New</span>}
+                {product.isBestSeller && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-600">Best Seller</span>}
               </div>
               
-              <h1 className="product-title">{product.name}</h1>
+              <h1 className="text-4xl font-bold font-serif text-slate-900 mb-3">
+                {product.name}
+              </h1>
               
-              <div className="product-rating">
-                <div className="stars">
-                  {[...Array(5)].map((_, i) => (
-                    <FiStar 
-                      key={i} 
-                      className={`star ${i < Math.floor(product.rating) ? 'filled' : ''}`}
-                    />
-                  ))}
-                </div>
-                <span className="rating-text">
-                  {product.rating} ({product.reviews} reviews)
-                </span>
+              <div className="flex items-center gap-2 text-sm">
+                <StarRating rating={product.rating} />
+                <span className="text-slate-500">({product.reviews} reviews)</span>
               </div>
             </div>
 
             {/* Variants */}
-            <div className="product-variants">
-              <h3 className="variants-title">Select Size:</h3>
-              <div className="variants-list">
+            <div>
+              <h3 className="text-sm font-medium text-slate-800 mb-2">Select Size:</h3>
+              <div className="flex flex-wrap gap-3">
                 {product.variants.map((variant, index) => (
                   <button
                     key={index}
-                    className={`variant-btn ${selectedVariant === index ? 'active' : ''}`}
-                    onClick={() => setSelectedVariant(index)}
+                    className={`px-4 py-2.5 rounded-lg border text-sm transition-all ${
+                      selectedVariant.id === variant.id
+                        ? 'bg-amber-100 border-amber-500 ring-1 ring-amber-500'
+                        : 'bg-white border-slate-300 hover:border-slate-500'
+                    }`}
+                    onClick={() => {
+                      setSelectedVariant(variant);
+                      setQuantity(1); // Reset quantity on variant change
+                    }}
+                    aria-pressed={selectedVariant.id === variant.id}
                   >
-                    <span className="variant-name">{variant.name}</span>
-                    <span className="variant-price">₹{variant.price}</span>
+                    <span className="font-semibold text-slate-800">{variant.name}</span>
+                    <span className="text-slate-600 ml-2">₹{variant.price}</span>
                     {variant.originalPrice > variant.price && (
-                      <span className="variant-original-price">₹{variant.originalPrice}</span>
+                      <span className="text-slate-500 line-through ml-1.5">₹{variant.originalPrice}</span>
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Pricing */}
-            <div className="product-pricing">
-              <div className="current-price">₹{product.variants[selectedVariant].price}</div>
-              {product.variants[selectedVariant].originalPrice > product.variants[selectedVariant].price && (
-                <div className="original-price">₹{product.variants[selectedVariant].originalPrice}</div>
+            {/* Price */}
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl font-bold text-slate-900">₹{selectedVariant.price}</span>
+              {hasDiscount && (
+                <span className="text-2xl text-slate-400 line-through">₹{selectedVariant.originalPrice}</span>
               )}
             </div>
 
-            {/* Quantity and Add to Cart Section */}
-            <div className="quantity-cart-section">
-              <div className="product-quantity">
-                <h3 className="quantity-title">Quantity:</h3>
-                <div className="quantity-controls">
-                  <button
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 0}
-                  >
-                    <FiMinus />
-                  </button>
-                  <input
-                    type="number"
-                    min="0"
-                    max={currentStock}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="quantity-input"
-                  />
-                  <button
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= currentStock}
-                  >
-                    <FiPlus />
-                  </button>
-                </div>
-                <span className="stock-info">
-                  {currentStock} items in stock
-                </span>
-              </div>
-
-              <div className="product-actions-main">
-                <button 
-                  className="btn btn-primary btn-large btn-add-to-cart" 
-                  onClick={handleAddToCart}
-                  disabled={quantity <= 0}
+            {/* Quantity and Actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Quantity */}
+              <div className="flex items-center">
+                <button
+                  className="quantity-btn" // Use the class from index.css
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
                 >
-                  <FiShoppingCart />
-                  Add to Cart
+                  <FiMinus />
                 </button>
-                <button className="btn btn-secondary btn-large" onClick={handleBuyNow} disabled={quantity <= 0}>
-                  Buy Now
-                </button>
-                <button 
-                  className={`btn btn-outline ${isWishlisted ? 'wishlisted' : ''}`}
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                <span className="w-16 text-center text-lg font-medium">{quantity}</span>
+                <button
+                  className="quantity-btn" // Use the class from index.css
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={quantity >= currentStock}
                 >
-                  <FiHeart />
-                  {isWishlisted ? 'Wishlisted' : 'Wishlist'}
-                </button>
-                <button className="btn btn-outline">
-                  <FiShare2 />
-                  Share
+                  <FiPlus />
                 </button>
               </div>
+              <span className="text-sm font-medium text-green-600">
+                {currentStock} items in stock
+              </span>
             </div>
+
+            {/* CTAs: Add to Cart, Buy Now */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button 
+                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all disabled:opacity-50" 
+                onClick={handleAddToCart}
+                disabled={currentStock <= 0 || quantity <= 0}
+              >
+                <FiShoppingCart className="w-5 h-5" />
+                Add to Cart
+              </button>
+              <button 
+                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-slate-800 rounded-lg shadow-md hover:bg-slate-900 transition-all disabled:opacity-50"
+                onClick={handleBuyNow} 
+                disabled={currentStock <= 0 || quantity <= 0}
+              >
+                Buy Now
+              </button>
+            </div>
+
+            {/* Secondary Actions: Wishlist, Share */}
+            <div className="flex items-center gap-4">
+              <button 
+                className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                  isWishlisted 
+                    ? 'text-red-500' 
+                    : 'text-slate-600 hover:text-red-500'
+                }`}
+                onClick={handleWishlistClick}
+              >
+                <FiHeart className={isWishlisted ? 'fill-current' : ''} />
+                {isWishlisted ? 'Added to Wishlist' : 'Add to Wishlist'}
+              </button>
+              <button className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition-colors">
+                <FiShare2 />
+                Share
+              </button>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="pt-6 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <ProductFeature icon={<FiTruck />} text="Free shipping over ₹500" />
+              <ProductFeature icon={<FiShield />} text="100% Natural Ingredients" />
+              <ProductFeature icon={<FiRefreshCw />} text="Easy 7-Day Returns" />
+            </div>
+
           </div>
         </div>
 
-        {/* Product Description Section with Features */}
-        <div className="product-description-section">
-          <div className="description-content">
-            <h2>Description</h2>
-            <p className="description-text">{product.detailedDescription || product.description}</p>
-          </div>
-          
-          {/* Feature Highlights */}
-          <div className="product-features-highlights">
-            <div className="feature-card">
-              <div className="feature-icon-wrapper">
-                <FiTruck className="feature-icon" />
-              </div>
-              <span className="feature-text">Free shipping on orders above ₹500</span>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon-wrapper">
-                <FiShield className="feature-icon" />
-              </div>
-              <span className="feature-text">100% natural ingredients</span>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon-wrapper">
-                <FiRefreshCw className="feature-icon" />
-              </div>
-              <span className="feature-text">Easy returns within 7 days</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Details Tabs */}
-        <div className="product-tabs">
-          <div className="tab-headers">
-            <button 
-              className={`tab-header ${activeTab === 'description' ? 'active' : ''}`}
-              onClick={() => setActiveTab('description')}
-            >
-              Description
-            </button>
-            <button 
-              className={`tab-header ${activeTab === 'ingredients' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ingredients')}
-            >
-              Ingredients
-            </button>
-            <button 
-              className={`tab-header ${activeTab === 'benefits' ? 'active' : ''}`}
-              onClick={() => setActiveTab('benefits')}
-            >
-              Benefits
-            </button>
-            <button 
-              className={`tab-header ${activeTab === 'nutrition' ? 'active' : ''}`}
-              onClick={() => setActiveTab('nutrition')}
-            >
-              Nutrition Facts
-            </button>
+        {/* --- Product Details Tabs (Full Width) --- */}
+        <div className="mt-20">
+          {/* Tab Headers */}
+          <div className="flex border-b border-slate-200">
+            <TabButton title="Description" activeTab={activeTab} onClick={setActiveTab} />
+            <TabButton title="Ingredients" activeTab={activeTab} onClick={setActiveTab} />
+            <TabButton title="Benefits" activeTab={activeTab} onClick={setActiveTab} />
+            <TabButton title="Nutrition" activeTab={activeTab} onClick={setActiveTab} />
           </div>
 
-          <div className="tab-content">
+          {/* Tab Content */}
+          <div className="py-8 prose prose-slate max-w-none">
             {activeTab === 'description' && (
-              <div className="tab-panel">
-                <p>{product.detailedDescription}</p>
+              <div>
+                <h3>Product Description</h3>
+                <p>{product.detailedDescription || product.description}</p>
               </div>
             )}
 
             {activeTab === 'ingredients' && (
-              <div className="tab-panel">
-                <h3>Ingredients:</h3>
-                <ul className="ingredients-list">
+              <div>
+                <h3>Ingredients</h3>
+                <ul className="list-disc list-outside pl-5">
                   {product.ingredients.map((ingredient, index) => (
                     <li key={index}>{ingredient}</li>
                   ))}
@@ -305,9 +306,10 @@ const ProductDetail = () => {
             )}
 
             {activeTab === 'benefits' && (
-              <div className="tab-panel">
-                <h3>Health Benefits:</h3>
-                <ul className="benefits-list">
+              <div>
+                <h3>Health Benefits</h3>
+                <ul className="list-disc list-outside pl-5">
+                  {/* Hard-coded for example */}
                   <li>Rich in essential vitamins and minerals</li>
                   <li>Natural source of energy</li>
                   <li>Supports heart health</li>
@@ -318,28 +320,15 @@ const ProductDetail = () => {
             )}
 
             {activeTab === 'nutrition' && (
-              <div className="tab-panel">
-                <h3>Nutrition Facts (per 100g):</h3>
-                <div className="nutrition-facts">
-                  <div className="nutrition-item">
-                    <span className="nutrition-label">Calories</span>
-                    <span className="nutrition-value">{product.nutritionalInfo.calories}</span>
-                  </div>
-                  <div className="nutrition-item">
-                    <span className="nutrition-label">Protein</span>
-                    <span className="nutrition-value">{product.nutritionalInfo.protein}</span>
-                  </div>
-                  <div className="nutrition-item">
-                    <span className="nutrition-label">Fat</span>
-                    <span className="nutrition-value">{product.nutritionalInfo.fat}</span>
-                  </div>
-                  <div className="nutrition-item">
-                    <span className="nutrition-label">Carbohydrates</span>
-                    <span className="nutrition-value">{product.nutritionalInfo.carbs}</span>
-                  </div>
-                  <div className="nutrition-item">
-                    <span className="nutrition-label">Fiber</span>
-                    <span className="nutrition-value">{product.nutritionalInfo.fiber}</span>
+              <div>
+                <h3>Nutrition Facts (per 100g)</h3>
+                <div className="not-prose border border-slate-200 rounded-lg overflow-hidden">
+                  <div className="divide-y divide-slate-200">
+                    <NutritionItem label="Calories" value={product.nutritionalInfo.calories} />
+                    <NutritionItem label="Protein" value={product.nutritionalInfo.protein} />
+                    <NutritionItem label="Fat" value={product.nutritionalInfo.fat} />
+                    <NutritionItem label="Carbohydrates" value={product.nutritionalInfo.carbs} />
+                    <NutritionItem label="Fiber" value={product.nutritionalInfo.fiber} />
                   </div>
                 </div>
               </div>
@@ -350,5 +339,52 @@ const ProductDetail = () => {
     </div>
   );
 };
+
+// --- Helper Components ---
+
+const StarRating = ({ rating }) => (
+  <div className="flex items-center">
+    {[...Array(5)].map((_, i) => (
+      <FiStar 
+        key={i} 
+        className={`w-5 h-5 ${
+          i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-slate-300'
+        }`}
+      />
+    ))}
+  </div>
+);
+
+const ProductFeature = ({ icon, text }) => (
+  <div className="flex items-center gap-3 text-sm">
+    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-amber-100 text-amber-600">
+      {React.cloneElement(icon, { className: 'w-5 h-5' })}
+    </div>
+    <span className="font-medium text-slate-700">{text}</span>
+  </div>
+);
+
+const TabButton = ({ title, activeTab, onClick }) => {
+  const isActive = activeTab === title.toLowerCase();
+  return (
+    <button 
+      className={`py-4 px-6 font-semibold border-b-2 transition-colors ${
+        isActive
+          ? 'border-amber-500 text-amber-600'
+          : 'border-transparent text-slate-500 hover:text-slate-800'
+      }`}
+      onClick={() => onClick(title.toLowerCase())}
+    >
+      {title}
+    </button>
+  );
+};
+
+const NutritionItem = ({ label, value }) => (
+  <div className="px-4 py-3 flex justify-between items-center even:bg-slate-50">
+    <span className="text-sm font-medium text-slate-800">{label}</span>
+    <span className="text-sm text-slate-600">{value}</span>
+  </div>
+);
 
 export default ProductDetail;

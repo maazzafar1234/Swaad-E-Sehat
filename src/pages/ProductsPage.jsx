@@ -8,7 +8,6 @@ import {
   sortProducts,
   searchProducts
 } from '../data/products';
-import './ProductsPage.css';
 
 const ProductsPage = () => {
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -44,48 +43,55 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="products-page">
-      <div className="container">
+    <div className="w-full bg-slate-50 pt-20"> {/* pt-20 offsets the fixed header */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        
         {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Our Products</h1>
-          <p className="page-description">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold font-serif text-slate-900 mb-4">
+            Our Products
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Discover our premium collection of natural sweets and dry fruits
           </p>
         </div>
 
         {/* Controls Section */}
-        <div className="products-controls">
-          <div className="search-section">
-            <div className="search-container">
-              <FiSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button
-                  onClick={clearSearch}
-                  className="clear-search-btn"
-                  aria-label="Clear search"
-                >
-                  <FiX />
-                </button>
-              )}
-            </div>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 p-4 bg-white rounded-lg shadow-sm">
+          
+          {/* Search */}
+          <div className="relative w-full md:w-auto">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full md:w-80 pl-12 pr-10 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none transition"
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-500 transition-colors"
+                aria-label="Clear search"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
-          <div className="controls-section">
-            <div className="sort-controls">
-              <label htmlFor="sort">Sort by:</label>
+          {/* Sort & View Controls */}
+          <div className="flex items-center gap-4">
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="sort" className="text-sm font-medium text-slate-600 hidden sm:block">
+                Sort by:
+              </label>
               <select
                 id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="sort-select"
+                className="py-3 pl-3 pr-8 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white text-sm"
               >
                 {sortOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -95,48 +101,63 @@ const ProductsPage = () => {
               </select>
             </div>
 
-            <div className="view-controls">
+            {/* View Mode Toggle */}
+            <div className="flex items-center rounded-lg bg-slate-100 p-1">
               <button
-                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'grid' 
+                    ? 'bg-white text-amber-600 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
                 onClick={() => setViewMode('grid')}
                 aria-label="Grid View"
               >
-                <FiGrid />
+                <FiGrid className="w-5 h-5" />
               </button>
               <button
-                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'list' 
+                    ? 'bg-white text-amber-600 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
                 onClick={() => setViewMode('list')}
                 aria-label="List View"
               >
-                <FiList />
+                <FiList className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Products Grid */}
+        {/* Products Grid / List */}
         <div className="products-section">
-          <div className="products-info">
-            <p className="products-count">
+          <div className="mb-6 border-b border-slate-200 pb-4">
+            <p className="text-sm text-slate-500">
               Showing {filteredProducts.length} of {products.length} products
             </p>
           </div>
           
-          <div className={`products-grid ${viewMode}`}>
-            {filteredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                viewMode={viewMode}
-              />
-            ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
-            <div className="no-products">
-              <h3>No products found</h3>
-              <p>Try adjusting your search or filter criteria</p>
+          {filteredProducts.length > 0 ? (
+            <div className={`
+              transition-all duration-300
+              ${viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                : 'flex flex-col gap-6'
+              }
+            `}>
+              {filteredProducts.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  viewMode={viewMode} // Pass the viewMode prop
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 border border-dashed border-slate-300 rounded-lg bg-white">
+              <h3 className="text-2xl font-semibold text-slate-800 mb-2">No products found</h3>
+              <p className="text-slate-500">Try adjusting your search or filter criteria.</p>
             </div>
           )}
         </div>

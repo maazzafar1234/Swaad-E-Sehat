@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiUser, FiMail, FiPhone, FiMapPin, FiCreditCard, FiLock, FiSmartphone, FiGrid, FiX } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  FiUser, 
+  FiMail, 
+  FiPhone, 
+  FiMapPin, 
+  FiCreditCard, 
+  FiLock,
+  FiArrowLeft,
+  FiTruck,
+  FiLoader // <-- Added for the modal
+} from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
-import './CheckoutPage.css';
+import { toast } from 'react-toastify';
+import ClientApiInstance from '../api/axiosIntercepter'; 
+// import { useAuth } from '../context/AuthContext';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { items, getCartTotal, clearCart } = useCart();
+  const { items, clearCart } = useCart();
+  // const { user } = useAuth(); // <-- Get user from context
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,68 +29,108 @@ const CheckoutPage = () => {
     city: '',
     state: '',
     pincode: '',
-    paymentMethod: 'razorpay' // Default to Razorpay instead of COD
+    paymentMethod: 'online'
   });
-  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const [isProcessing, setIsProcessing] = useState(false); // For the main button
+  const [isPolling, setIsPolling] = useState(false);     // For the "Waiting" modal
+  const [pollingOrderId, setPollingOrderId] = useState(null); // To store the ID we are checking
   const [errors, setErrors] = useState({});
 
+  // --- Calculations ---
+  const calculateSubtotal = () => items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const subtotal = calculateSubtotal();
+  const tax = subtotal * 0.18;
+  const total = subtotal + tax;
+
+  // --- Effects ---
   useEffect(() => {
-    if (items.length === 0) {
+    // If cart is empty, redirect
+    if (items.length === 0 && !isProcessing && !isPolling) {
+      toast.error("Your cart is empty. Redirecting...");
       navigate('/cart');
     }
-  }, [items, navigate]);
+  }, [items, navigate, isProcessing, isPolling]);
 
-  // Load Razorpay script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
+  
+  // --- THIS IS THE POLLING LOGIC ---
+  useEffect(() => {
+    if (!isPolling || !pollingOrderId) return;
+
+    let pollCount = 0;
+    const maxPolls = 40; // Poll for 2 minutes (40 * 3s)
+    let intervalId;
+
+    const pollStatus = async () => {
+      pollCount++;
+      console.log(`Polling status for ${pollingOrderId}, attempt ${pollCount}`);
+
+      if (pollCount > maxPolls) {
+        clearInterval(intervalId);
+        setIsPolling(false);
+        toast.warn('Payment check timed out. If you paid, please check "My Orders" later.');
+        setPollingOrderId(null);
         return;
       }
-      
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => {
-        console.log('Razorpay script loaded successfully');
-        resolve(true);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Razorpay script');
-        resolve(false);
-      };
-      document.body.appendChild(script);
-    });
-  };
 
-  useEffect(() => {
-    loadRazorpayScript();
-  }, []);
+      try {
+        const response = await ClientApiInstance.get(`/status/verify-order/${pollingOrderId}`);
+        const status = response.data.status;
 
+        if (status === 'paid') {
+          // --- 1. PAYMENT SUCCESS ---
+          clearInterval(intervalId);
+          setIsPolling(false);
+          toast.success('Payment successful! Order confirmed.');
+          clearCart();
+          
+          // 2. Get the saved order data
+          const savedOrder = JSON.parse(sessionStorage.getItem('lastOrderData'));
+          
+          // 3. REDIRECT TO /order-confirmation WITH THE DATA
+          navigate('/order-confirmation', { state: { order: savedOrder } });
+
+        } else if (status === 'failed') {
+          // --- PAYMENT FAILURE ---
+          clearInterval(intervalId);
+          setIsPolling(false);
+          toast.error('Payment failed. Please try again.');
+          setPollingOrderId(null);
+        }
+        // If status is "pending", do nothing, let it poll again
+
+      } catch (err) {
+        console.error("Polling error:", err);
+        // Don't stop polling on a network error
+      }
+    };
+
+    // Start polling every 3 seconds
+    intervalId = setInterval(pollStatus, 3000);
+
+    // Cleanup function
+    return () => clearInterval(intervalId);
+
+  }, [isPolling, pollingOrderId, navigate, clearCart]); // Dependencies
+
+
+  // --- Form Handling ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone number must be 10 digits';
+    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.city.trim()) newErrors.city = 'City is required';
     if (!formData.state.trim()) newErrors.state = 'State is required';
@@ -87,470 +140,415 @@ const CheckoutPage = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  // Razorpay payment functions
-  const initiateRazorpayPayment = async () => {
-    setIsProcessing(true);
-    
+  
+  const getUserIdFromToken = () => {
     try {
-      const razorpayLoaded = await loadRazorpayScript();
-      if (!razorpayLoaded) {
-        setIsProcessing(false);
-        alert('Payment gateway not loaded. Please refresh the page and try again.');
-        return;
-      }
-
-      const totalAmount = getCartTotal();
-      const orderId = `ORDER_${Date.now()}`;
-
-      const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag', // Replace with your live key // Test key - replace with your live key for production
-        amount: totalAmount * 100, // Amount in paise
-        currency: 'INR',
-        name: 'Swaad-E-Sehat',
-        description: 'Premium Dry Fruits & Sweets',
-        image: '/images/sticker.jpg',
-        // Remove order_id to let Razorpay create the order automatically
-        handler: function (response) {
-          console.log('Payment successful:', response);
-          setIsProcessing(false);
-          
-          // Send order confirmation
-          sendOrderConfirmation();
-          
-          // Payment successful
-          const orderData = {
-            orderId: response.razorpay_order_id || orderId,
-            amount: totalAmount,
-            paymentMethod: 'Razorpay',
-            paymentId: response.razorpay_payment_id,
-            customerInfo: formData,
-            items: items
-          };
-          
-          // Clear cart and navigate to homepage
-          clearCart();
-          navigate('/');
-        },
-        prefill: {
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          contact: process.env.REACT_APP_MERCHANT_PHONE || '8849978818'
-        },
-        notes: {
-          address: `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pincode}`,
-          order_id: orderId,
-          merchant_name: process.env.REACT_APP_MERCHANT_NAME || 'Swaad-E-Sehat',
-          merchant_phone: process.env.REACT_APP_MERCHANT_PHONE || '8849978818',
-          customer_name: `${formData.firstName} ${formData.lastName}`,
-          customer_email: formData.email,
-          customer_phone: formData.phone
-        },
-        theme: {
-          color: '#28a745'
-        },
-        retry: {
-          enabled: true,
-          max_count: 3
-        },
-        modal: {
-          ondismiss: function() {
-            console.log('Payment modal dismissed');
-            setIsProcessing(false);
-          }
-        },
-        method: {
-          netbanking: true,
-          wallet: true,
-          emi: true,
-          upi: true,
-          card: true
-        }
-      };
-
-      console.log('Opening Razorpay with options:', {
-        key: options.key,
-        amount: options.amount,
-        currency: options.currency,
-        name: options.name,
-        description: options.description,
-        merchant_name: 'Swaad-E-Sehat'
-      });
-
-      const razorpay = new window.Razorpay(options);
-      
-      razorpay.on('payment.failed', function (response) {
-        console.error('Payment failed:', response.error);
-        setIsProcessing(false);
-        
-        // Specific handling for UPI errors
-        if (response.error.code === 'BAD_REQUEST_ERROR' && response.error.description.includes('UPI')) {
-          alert('UPI payment failed. This might be due to test environment limitations. Please try using Card payment or Cash on Delivery for now.');
-        } else if (response.error.description && response.error.description.includes('invalid UPI ID')) {
-          alert('UPI payment is not available in test mode. Please use Card payment or Cash on Delivery instead.');
-        } else {
-          alert(`Payment failed: ${response.error.description || 'Unknown error occurred'}`);
-        }
-      });
-
-      razorpay.on('payment.authorized', function (response) {
-        console.log('Payment authorized:', response);
-      });
-
-      razorpay.open();
-    } catch (error) {
-      console.error('Error opening Razorpay:', error);
-      setIsProcessing(false);
-      alert('Failed to open payment gateway. Please try again.');
+      const userJSON = localStorage.getItem('user'); 
+      if (!userJSON) throw new Error('No user data found');
+      const user = JSON.parse(userJSON);
+      if (!user.id) throw new Error('User ID not found');
+      return user.id;
+    } catch (err) {
+      console.error(err);
+      return null;
     }
   };
 
-  const calculateSubtotal = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.18;
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
-  };
-
-  const sendOrderConfirmation = async () => {
+  const sendOrderConfirmation = (orderData) => {
     try {
-        const orderData = {
-          orderId: `QR_${Date.now()}`,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          customerEmail: formData.email,
-          customerPhone: formData.phone,
-          amount: calculateTotal(),
-          items: items,
-          paymentMethod: qrPaymentMethod,
-          upiId: '8849978818@ptyes',
-          timestamp: new Date().toISOString()
-        };
-
-      // Send confirmation email (simulated - in real app, call your backend API)
-      console.log('Sending order confirmation:', orderData);
-      
-      // Simulate sending confirmation message
-      if (formData.email) {
-        // In a real application, you would send an email via your backend
-        console.log(`Email sent to ${formData.email} with order confirmation`);
-      }
-      
-      if (formData.phone) {
-        // In a real application, you would send SMS via your backend
-        console.log(`SMS sent to ${formData.phone} with order confirmation`);
-      }
-
-      // Store order in localStorage for demo purposes
+      console.log('Simulating order confirmation:', orderData);
       const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
       existingOrders.push(orderData);
       localStorage.setItem('orders', JSON.stringify(existingOrders));
-
     } catch (error) {
-      console.error('Error sending confirmation:', error);
+      console.error('Error saving order confirmation:', error);
     }
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (e) => {
+    e.preventDefault();
     if (!validateForm()) {
+      toast.error('Please fill in all required fields correctly.');
+      return;
+    }
+    setIsProcessing(true);
+
+    const userId = localStorage.getItem('authToken');
+    if (!userId) {
+      toast.error('You must be logged in to place an order.');
+      setIsProcessing(false);
+      navigate('/login'); 
       return;
     }
 
-    setIsProcessing(true);
+    const orderPayload = {
+      user_id: userId,
+      amount: total,
+      customerInfo: formData,
+      items: items,
+      paymentMethod: formData.paymentMethod === 'cod' ? 'COD' : 'Online'
+    };
 
     try {
-      if (formData.paymentMethod === 'razorpay') {
-        // Handle Razorpay payment
-        await initiateRazorpayPayment();
-        setIsProcessing(false);
-        return;
-      } else {
-        // Handle COD payment
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Send order confirmation
-        sendOrderConfirmation();
-        
-        // Clear cart and redirect to home page
+      const response = await ClientApiInstance.post("/checkout/api/orders/create", orderPayload);
+      const data = response.data;
+
+      if (!data.success) {
+        throw new Error(data.message || 'Order creation failed');
+      }
+
+      const orderData = {
+        orderId: data.orderId,
+        amount: total,
+        paymentMethod: formData.paymentMethod,
+        customerInfo: formData,
+        items: items,
+        timestamp: new Date().toISOString()
+      };
+
+      // --- THIS IS THE KEY ---
+      // Save the data to session storage *before* splitting logic
+      sessionStorage.setItem('lastOrderData', JSON.stringify(orderData));
+
+      if (formData.paymentMethod === 'cod') {
+        sendOrderConfirmation(orderData); 
         clearCart();
-        navigate('/');
+        toast.success("Order placed successfully!");
+        navigate('/order-confirmation', { state: { order: orderData } });
+      } else {
+        if (data.paymentUrl && data.orderId) {
+          // Open payment link
+          window.open(data.paymentUrl, '_blank', 'noopener,noreferrer');
+          
+          // Show the "Waiting" modal and start polling
+          setPollingOrderId(data.orderId);
+          setIsPolling(true); 
+          setIsProcessing(false);
+        } else {
+          throw new Error('Payment URL or OrderID not received from server.');
+        }
       }
     } catch (error) {
       console.error('Order processing error:', error);
-    } finally {
+      toast.error(error.message || "An error occurred while processing your order.");
       setIsProcessing(false);
     }
   };
 
+  // --- Dynamic Button Text ---
+  let paymentButtonContent = null;
+  if (isProcessing) {
+    paymentButtonContent = (
+      <>
+        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Processing...</span>
+      </>
+    );
+  } else if (formData.paymentMethod === 'online') {
+    paymentButtonContent = (
+      <>
+        <FiLock className="w-5 h-5" />
+        <span>{`Proceed to Pay ₹${total.toFixed(2)}`}</span>
+      </>
+    );
+  } else { // 'cod'
+    paymentButtonContent = (
+      <>
+        <FiLock className="w-5 h-5" />
+        <span>{`Place Order (COD) - ₹${total.toFixed(2)}`}</span>
+      </>
+    );
+  }
+
   return (
-    <div className="checkout-page">
-      <div className="container">
-        <div className="checkout-header">
-          <h1 className="page-title">Checkout</h1>
-          <p className="page-description">Complete your order securely</p>
+    <div className="w-full bg-slate-50 pt-20">
+      
+      {/* --- Payment Waiting Modal --- */}
+      {isPolling && (
+        <PaymentWaitingModal 
+          orderId={pollingOrderId} 
+          onClose={() => {
+            setIsPolling(false);
+            setPollingOrderId(null);
+            toast.info("Payment check cancelled.");
+          }} 
+        />
+      )}
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+          <h1 className="text-4xl font-bold font-serif text-slate-900">Checkout</h1>
+          <Link 
+            to="/cart" 
+            className="flex items-center gap-2 font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+            <span>Back to Cart</span>
+          </Link>
         </div>
-
-        <div className="checkout-content">
-          <div className="checkout-form-section">
-            <form className="checkout-form">
-              {/* Personal Information */}
-              <div className="form-section">
-                <h3 className="section-title">
-                  <FiUser className="section-icon" />
-                  Personal Information
-                </h3>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">First Name *</label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className={errors.firstName ? 'error' : ''}
-                      placeholder="Enter your first name"
-                    />
-                    {errors.firstName && <span className="error-message">{errors.firstName}</span>}
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="lastName">Last Name *</label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className={errors.lastName ? 'error' : ''}
-                      placeholder="Enter your last name"
-                    />
-                    {errors.lastName && <span className="error-message">{errors.lastName}</span>}
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="email">Email Address *</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={errors.email ? 'error' : ''}
-                      placeholder="Enter your email address"
-                    />
-                    {errors.email && <span className="error-message">{errors.email}</span>}
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="phone">Phone Number *</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className={errors.phone ? 'error' : ''}
-                      placeholder="Enter your phone number"
-                    />
-                    {errors.phone && <span className="error-message">{errors.phone}</span>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Shipping Address */}
-              <div className="form-section">
-                <h3 className="section-title">
-                  <FiMapPin className="section-icon" />
-                  Shipping Address
-                </h3>
-                <div className="form-group">
-                  <label htmlFor="address">Address *</label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    className={errors.address ? 'error' : ''}
-                    placeholder="Enter your complete address"
-                    rows="3"
+        
+        <form id="checkout-form" onSubmit={handlePayment} className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+          
+          <div className="lg:col-span-2 space-y-8">
+            {/* --- Personal Info --- */}
+            <FormSection title="Personal Information" icon={<FiUser />}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <FormGroup>
+                  <label htmlFor="firstName" className="form-label">First Name *</label>
+                  <input type="text" id="firstName" name="firstName"
+                    value={formData.firstName} onChange={handleInputChange}
+                    placeholder="Enter your first name"
+                    className={`form-input ${errors.firstName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
                   />
-                  {errors.address && <span className="error-message">{errors.address}</span>}
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="city">City *</label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className={errors.city ? 'error' : ''}
-                      placeholder="Enter your city"
-                    />
-                    {errors.city && <span className="error-message">{errors.city}</span>}
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="state">State *</label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      className={errors.state ? 'error' : ''}
-                      placeholder="Enter your state"
-                    />
-                    {errors.state && <span className="error-message">{errors.state}</span>}
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="pincode">Pincode *</label>
-                    <input
-                      type="text"
-                      id="pincode"
-                      name="pincode"
-                      value={formData.pincode}
-                      onChange={handleInputChange}
-                      className={errors.pincode ? 'error' : ''}
-                      placeholder="Enter pincode"
-                    />
-                    {errors.pincode && <span className="error-message">{errors.pincode}</span>}
-                  </div>
-                </div>
+                  {errors.firstName && <p className="text-red-600 text-sm mt-1">{errors.firstName}</p>}
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="lastName" className="form-label">Last Name *</label>
+                  <input type="text" id="lastName" name="lastName"
+                    value={formData.lastName} onChange={handleInputChange}
+                    placeholder="Enter your last name"
+                    className={`form-input ${errors.lastName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.lastName && <p className="text-red-600 text-sm mt-1">{errors.lastName}</p>}
+                </FormGroup>
               </div>
-
-              {/* Payment Method */}
-              <div className="form-section">
-                <h3 className="section-title">
-                  <FiCreditCard className="section-icon" />
-                  Payment Method
-                </h3>
-                
-                <div className="payment-options">
-                  {/* Razorpay - Active */}
-                  <div 
-                    className={`payment-option ${formData.paymentMethod === 'razorpay' ? 'active' : ''}`}
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }))}
-                  >
-                    <div className="payment-option-header">
-                      <div className="payment-icon">💳</div>
-                      <div className="payment-details">
-                        <h4>Razorpay</h4>
-                        <p>Pay with cards, wallets, net banking</p>
-                      </div>
-                      <div className="payment-status">
-                        <span className="status-check">✓</span>
-                        <span className="status-text">Available</span>
-                      </div>
-                    </div>
-                    <div className="razorpay-benefits">
-                      <span className="benefit">✓ Secure online payments</span>
-                      <span className="benefit">✓ Multiple payment options</span>
-                      <span className="benefit">✓ Instant confirmation</span>
-                    </div>
-                  </div>
-
-                  {/* Cash on Delivery - Working */}
-                  <div 
-                    className={`payment-option ${formData.paymentMethod === 'cod' ? 'active' : ''}`}
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cod' }))}
-                  >
-                    <div className="payment-option-header">
-                      <div className="payment-icon">💰</div>
-                      <div className="payment-details">
-                        <h4>Cash on Delivery (COD)</h4>
-                        <p>Pay when your order arrives at your doorstep</p>
-                      </div>
-                      <div className="payment-status">
-                        <span className="status-check">✓</span>
-                        <span className="status-text">Available</span>
-                      </div>
-                    </div>
-                    <div className="cod-benefits">
-                      <span className="benefit">✓ No online payment required</span>
-                      <span className="benefit">✓ Pay with cash or card</span>
-                      <span className="benefit">✓ Safe and secure</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <FormGroup>
+                  <label htmlFor="email" className="form-label">Email *</label>
+                  <input type="email" id="email" name="email"
+                    value={formData.email} onChange={handleInputChange}
+                    placeholder="Enter your email"
+                    className={`form-input ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="phone" className="form-label">Phone *</label>
+                  <input type="tel" id="phone" name="phone"
+                    value={formData.phone} onChange={handleInputChange}
+                    placeholder="Enter 10-digit number"
+                    className={`form-input ${errors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
+                </FormGroup>
               </div>
-            </form>
+            </FormSection>
+
+            {/* --- Shipping Address --- */}
+            <FormSection title="Shipping Address" icon={<FiMapPin />}>
+              <FormGroup>
+                <label htmlFor="address" className="form-label">Address *</label>
+                <textarea id="address" name="address" rows="3"
+                  value={formData.address} onChange={handleInputChange}
+                  placeholder="Enter your complete address"
+                  className={`form-input ${errors.address ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                />
+                {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address}</p>}
+              </FormGroup>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <FormGroup>
+                  <label htmlFor="city" className="form-label">City *</label>
+                  <input type="text" id="city" name="city"
+                    value={formData.city} onChange={handleInputChange}
+                    placeholder="Enter your city"
+                    className={`form-input ${errors.city ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.city && <p className="text-red-600 text-sm mt-1">{errors.city}</p>}
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="state" className="form-label">State *</label>
+                  <input type="text" id="state" name="state"
+                    value={formData.state} onChange={handleInputChange}
+                    placeholder="Enter your state"
+                    className={`form-input ${errors.state ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.state && <p className="text-red-600 text-sm mt-1">{errors.state}</p>}
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="pincode" className="form-label">Pincode *</label>
+                  <input type="text" id="pincode" name="pincode"
+                    value={formData.pincode} onChange={handleInputChange}
+                    placeholder="Enter 6-digit pincode"
+                    className={`form-input ${errors.pincode ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  />
+                  {errors.pincode && <p className="text-red-600 text-sm mt-1">{errors.pincode}</p>}
+                </FormGroup>
+              </div>
+            </FormSection>
+            
+            {/* --- Payment Method --- */}
+            <FormSection title="Payment Method" icon={<FiCreditCard />}>
+              <div className="space-y-4">
+                <PaymentOption
+                  title="Online Payment"
+                  description="Pay with Card, UPI, Wallets, etc."
+                  icon={<FiCreditCard className="w-6 h-6 text-blue-600" />}
+                  value="online"
+                  currentValue={formData.paymentMethod}
+                  onChange={handleInputChange}
+                />
+                <PaymentOption
+                  title="Cash on Delivery (COD)"
+                  description="Pay with cash when your order arrives."
+                  icon={<FiTruck className="w-6 h-6 text-green-600" />}
+                  value="cod"
+                  currentValue={formData.paymentMethod}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </FormSection>
           </div>
 
-          <div className="order-summary-section">
-            <div className="order-summary">
-              <h3 className="summary-title">Order Summary</h3>
-              
-              <div className="order-items">
-                {items.map((item, index) => (
-                  <div key={index} className="order-item">
-                    <div className="item-info">
-                      <img src={item.image} alt={item.name} className="item-image" />
-                      <div className="item-details">
-                        <h4 className="item-name">{item.name}</h4>
-                        <p className="item-quantity">Qty: {item.quantity}</p>
-                      </div>
-                    </div>
-                    <span className="item-price">₹{item.price * item.quantity}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="summary-totals">
-                <div className="total-row">
-                  <span>Subtotal</span>
-                  <span>₹{calculateSubtotal().toFixed(2)}</span>
-                </div>
-                <div className="total-row">
-                  <span>GST (18%)</span>
-                  <span>₹{calculateTax().toFixed(2)}</span>
-                </div>
-                <div className="total-row">
-                  <span>Shipping</span>
-                  <span className="free-shipping">FREE</span>
-                </div>
-                <div className="total-divider"></div>
-                <div className="total-row final-total">
-                  <span>Total</span>
-                  <span>₹{calculateTotal().toFixed(2)}</span>
-                </div>
-              </div>
-
-              <button
-                className="btn btn-primary btn-large checkout-btn"
-                onClick={handlePayment}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <FiLock />
-                    Processing Order...
-                  </>
-                ) : (
-                  <>
-                    <FiCreditCard />
-                    Place Order (COD) - ₹{calculateTotal().toFixed(2)}
-                  </>
-                )}
-              </button>
-
-              <div className="security-info">
-                <FiLock className="security-icon" />
-                <span>Your order information is secure and encrypted</span>
-              </div>
-            </div>
+          {/* --- Column 2: Order Summary --- */}
+          <div className="lg:col-span-1">
+            <OrderSummary 
+              items={items} 
+              subtotal={subtotal} 
+              tax={tax} 
+              total={total}
+              isProcessing={isProcessing}
+              paymentButtonContent={paymentButtonContent}
+            />
           </div>
-        </div>
-
+        </form>
       </div>
     </div>
   );
 };
+
+// --- Helper Components ---
+// (These are unchanged)
+
+const FormSection = ({ title, icon, children }) => (
+  <div className="bg-white rounded-lg shadow-md">
+    <h3 className="flex items-center gap-3 text-xl font-semibold text-slate-800 p-6 border-b border-slate-200">
+      {React.cloneElement(icon, { className: "w-6 h-6 text-amber-600" })}
+      <span>{title}</span>
+    </h3>
+    <div className="p-6 space-y-6">
+      {children}
+    </div>
+  </div>
+);
+
+const FormGroup = ({ children }) => (
+  <div className="w-full">
+    {children}
+  </div>
+);
+
+const PaymentOption = ({ title, description, icon, value, currentValue, onChange }) => {
+  const isChecked = currentValue === value;
+  return (
+    <label 
+      htmlFor={value} 
+      className={`border rounded-lg p-5 flex items-center gap-5 cursor-pointer transition-all ${
+        isChecked 
+          ? 'border-amber-500 ring-2 ring-amber-500 bg-amber-50' 
+          : 'border-slate-300 hover:border-slate-400'
+      }`}
+    >
+      <input
+        type="radio"
+        id={value}
+        name="paymentMethod"
+        value={value}
+        checked={isChecked}
+        onChange={onChange}
+        className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-slate-300"
+      />
+      <div className="flex-shrink-0">
+        {icon}
+      </div>
+      <div>
+        <h4 className="text-base font-semibold text-slate-800">{title}</h4>
+        <p className="text-sm text-slate-500">{description}</p>
+      </div>
+    </label>
+  );
+};
+
+const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButtonContent }) => (
+  <div className="bg-white rounded-xl shadow-md sticky top-28">
+    <h3 className="text-2xl font-semibold p-6 border-b border-slate-200">
+      Order Summary
+    </h3>
+    
+    <div className="p-6 space-y-4 max-h-64 overflow-y-auto border-b border-slate-200">
+      {items.map((item, index) => (
+        <div key={index} className="flex items-center gap-4">
+          <img src={item.image} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+          <div className="flex-1">
+            <h4 className="font-medium text-slate-800 line-clamp-1">{item.name}</h4>
+            <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
+          </div>
+          <span className="font-semibold text-slate-800">₹{(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      ))}
+    </div>
+    
+    <div className="p-6 space-y-3">
+      <div className="flex justify-between items-center text-slate-600">
+        <span>Subtotal</span>
+        <span className="font-medium text-slate-800">₹{subtotal.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between items-center text-slate-600">
+        <span>GST (18%)</span>
+        <span className="font-medium text-slate-800">₹{tax.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between items-center text-slate-600">
+        <span>Shipping</span>
+        <span className="font-medium text-green-600">FREE</span>
+      </div>
+      <div className="border-t border-slate-200 my-3"></div>
+      <div className="flex justify-between items-center text-xl font-bold text-slate-900">
+        <span>Total</span>
+        <span>₹{total.toFixed(2)}</span>
+      </div>
+    </div>
+    
+    <div className="p-6 border-t border-slate-100">
+      <button
+        type="submit"
+        form="checkout-form" // This submits the main form
+        className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+        disabled={isProcessing}
+      >
+        {paymentButtonContent}
+      </button>
+      <p className="flex items-center justify-center gap-2 text-xs text-slate-500 mt-4">
+        <FiLock /> Your information is secure and encrypted.
+      </p>
+    </div>
+  </div>
+);
+
+// --- NEW Helper Component: Payment Waiting Modal ---
+const PaymentWaitingModal = ({ orderId, onClose }) => (
+  <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[999]">
+    <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center mx-4">
+      <FiLoader className="w-16 h-16 text-amber-500 mx-auto animate-spin mb-6" />
+      <h2 className="text-2xl font-bold font-serif text-slate-800 mb-4">
+        Waiting for Payment...
+      </h2>
+      <p className="text-slate-600 mb-6">
+        A payment window has been opened. Please complete your payment in the new tab to confirm the order.
+      </p>
+      <p className="text-sm text-slate-500 mb-6">
+        We are checking the status for Order ID: <br/>
+        <span className="font-medium text-slate-700 text-xs">{orderId}</span>
+      </p>
+      <button
+        onClick={onClose}
+        className="text-sm font-medium text-slate-600 hover:text-red-600"
+      >
+        Cancel and Try Again
+      </button>
+    </div>
+  </div>
+);
 
 export default CheckoutPage;

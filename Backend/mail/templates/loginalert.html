@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Alert - New Login</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #DC3545 0%, #C82333 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .alert-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .header-title {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .header-subtitle {
+            color: #FFE5E8;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 20px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .alert-message {
+            background-color: #FFF3CD;
+            border-left: 4px solid #FFC107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .alert-title {
+            color: #856404;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .alert-text {
+            color: #856404;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .message {
+            color: #333333;
+            line-height: 1.8;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background-color: #F8F9FA;
+            border: 1px solid #DEE2E6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #DEE2E6;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #6C757D;
+            min-width: 140px;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #333333;
+            font-size: 14px;
+        }
+        .action-section {
+            background-color: #E7F3FF;
+            border-left: 4px solid #0066CC;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .action-title {
+            color: #004085;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .action-text {
+            color: #004085;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #DC3545;
+            color: #ffffff;
+            padding: 12px 35px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 15px;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+        }
+        .security-tips {
+            background-color: #F8F9FA;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .tips-title {
+            color: #333333;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .tip-item {
+            color: #666666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .tip-item:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28A745;
+            font-weight: bold;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #DEE2E6, transparent);
+            margin: 30px 0;
+        }
+        .footer {
+            background-color: #343A40;
+            color: #ffffff;
+            padding: 25px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .footer-text {
+            margin: 8px 0;
+            line-height: 1.6;
+            color: #CED4DA;
+        }
+        .footer-brand {
+            color: #FFF8DC;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .info-row {
+                flex-direction: column;
+            }
+            .info-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="alert-icon">🔒</div>
+            <h1 class="header-title">Security Alert</h1>
+            <p class="header-subtitle">New login detected on your account</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 class="greeting">Hello {{name}},</h2>
+            
+            <div class="alert-message">
+                <div class="alert-title">⚠️ New Login Detected</div>
+                <p class="alert-text">
+                    We detected a new login to your Swaad-E-Sehat account. If this was you, you can safely ignore this email.
+                </p>
+            </div>
+
+            <p class="message">
+                A new sign-in to your account was just detected. For your security, we're sending you this notification to make sure it was you.
+            </p>
+
+            <!-- Login Details -->
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Date & Time:</span>
+                    <span class="info-value" id="loginTime">Just now</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Device:</span>
+                    <span class="info-value">Web Browser</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location:</span>
+                    <span class="info-value">Approximate location based on IP</span>
+                </div>
+            </div>
+
+            <!-- Action Required Section -->
+            <div class="action-section">
+                <div class="action-title">🛡️ Wasn't You?</div>
+                <p class="action-text">
+                    If you didn't sign in to your account, your password may have been compromised. Please secure your account immediately by changing your password.
+                </p>
+                <div class="button-container">
+                    <a href="#" class="button">Secure My Account</a>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Security Tips -->
+            <div class="security-tips">
+                <div class="tips-title">🔐 Account Security Tips:</div>
+                <div class="tip-item">Use a strong, unique password for your account</div>
+                <div class="tip-item">Enable two-factor authentication when available</div>
+                <div class="tip-item">Never share your password with anyone</div>
+                <div class="tip-item">Be cautious of phishing emails asking for your credentials</div>
+                <div class="tip-item">Regularly review your account activity</div>
+            </div>
+
+            <p class="message" style="font-size: 13px; color: #6C757D;">
+                If you have any questions or concerns about your account security, please don't hesitate to contact our support team.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-brand">🌿 Swaad-E-Sehat</p>
+            <p class="footer-text">
+                This is an automated security alert. Please do not reply to this email.
+            </p>
+            <p class="footer-text">
+                If you didn't attempt to log in, please contact us immediately.
+            </p>
+            <p class="footer-text" style="font-size: 11px; margin-top: 15px; opacity: 0.8;">
+                © 2024 Swaad-E-Sehat. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

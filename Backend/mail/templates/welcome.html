@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Swaad-E-Sehat</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo-text {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .tagline {
+            color: #FFF8DC;
+            font-size: 14px;
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #8B4513;
+            margin-bottom: 20px;
+        }
+        .message {
+            color: #333333;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .features {
+            background-color: #FFF8DC;
+            border-left: 4px solid #D2691E;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .feature-icon {
+            color: #8B4513;
+            font-size: 20px;
+            margin-right: 10px;
+            min-width: 25px;
+        }
+        .feature-text {
+            color: #333333;
+            font-size: 15px;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            color: #ffffff;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #D2691E, transparent);
+            margin: 30px 0;
+        }
+        .footer {
+            background-color: #8B4513;
+            color: #FFF8DC;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-text {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-link {
+            color: #FFF8DC;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .greeting {
+                font-size: 20px;
+            }
+            .message {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo-text">🌿 Swaad-E-Sehat 🌿</h1>
+            <p class="tagline">TRADITION MEETS TASTE</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 class="greeting">Namaste, {{name}}! 🙏</h2>
+            
+            <p class="message">
+                Welcome to the Swaad-E-Sehat family! We're delighted to have you join us on this delicious journey of authentic flavors and wholesome goodness.
+            </p>
+
+            <p class="message">
+                At Swaad-E-Sehat, we believe that the best sweets are made the way our grandmothers made them – with love, patience, and 100% natural ingredients. Every bite tells a story of tradition, crafted using age-old recipes passed down through generations.
+            </p>
+
+            <!-- Features Section -->
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon">✨</span>
+                    <span class="feature-text"><strong>100% Natural Ingredients</strong> – No artificial colors, flavors, or preservatives</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🏡</span>
+                    <span class="feature-text"><strong>Homemade Tradition</strong> – Authentic recipes from generations past</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🌰</span>
+                    <span class="feature-text"><strong>Premium Dry Fruits</strong> – Carefully selected, premium quality nuts and dried fruits</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">❤️</span>
+                    <span class="feature-text"><strong>Made with Love</strong> – Each sweet crafted with care and attention to detail</span>
+                </div>
+            </div>
+
+            <p class="message">
+                Whether you're celebrating a special occasion or simply craving something sweet and wholesome, we're here to bring the authentic taste of tradition right to your doorstep.
+            </p>
+
+            <!-- Call to Action -->
+            <div class="cta-button">
+                <a href="#" class="button">Explore Our Collection</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message" style="font-size: 14px; color: #666;">
+                Thank you for choosing Swaad-E-Sehat. We can't wait to sweeten your moments with our premium natural sweets and dry fruits!
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="#" class="social-link">Facebook</a> | 
+                <a href="#" class="social-link">Instagram</a> | 
+                <a href="#" class="social-link">WhatsApp</a>
+            </div>
+            <p class="footer-text">
+                Swaad-E-Sehat<br>
+                Premium Natural Sweets & Dry Fruits<br>
+                Made with Love, Served with Tradition
+            </p>
+            <p class="footer-text" style="font-size: 12px; opacity: 0.8;">
+                © 2024 Swaad-E-Sehat. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

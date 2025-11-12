@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const pool = require("../Config/db");
 const userDashAuth = require("../Middleware/userDashAuth");

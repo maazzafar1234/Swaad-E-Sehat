@@ -10,12 +10,10 @@ const DashboardRoutes = require('./Controller/dashboard.js');
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 5000;
 
-// Middleware
 app.use(bodyParser.json());
 app.use(cors());
 
 
-// Sample route
 app.get('/', (req, res) => {
     res.send('Hello World!');
 
@@ -25,16 +23,9 @@ app.get('/', (req, res) => {
     });
 });
 
-// Auth routes
 app.use('/auth', authRoutes);
-
-//checkout route
 app.use('/checkout', checkoutRoutes);
-// Verify Order route
 app.use('/status', VerifyOrderRoutes);
 app.use('/stats', DashboardRoutes);
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+module.exports = app;

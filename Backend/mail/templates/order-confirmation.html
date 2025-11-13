@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Swaad-E-Sehat</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo-text {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .success-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #8B4513;
+            margin-bottom: 20px;
+        }
+        .message {
+            color: #333333;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .order-summary {
+            background-color: #FFF8DC;
+            border-left: 4px solid #D2691E;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 18px;
+            color: #8B4513;
+            padding-top: 15px;
+        }
+        .order-label {
+            color: #666;
+        }
+        .order-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .items-list {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .items-list h3 {
+            color: #8B4513;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .items-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .items-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+        }
+        .items-list li:last-child {
+            border-bottom: none;
+        }
+        .shipping-info {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .shipping-info h3 {
+            color: #8B4513;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #D2691E, transparent);
+            margin: 30px 0;
+        }
+        .footer {
+            background-color: #8B4513;
+            color: #FFF8DC;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-text {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .greeting {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo-text">🌿 Swaad-E-Sehat 🌿</h1>
+            <div class="success-badge">✓ ORDER CONFIRMED</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 class="greeting">Thank you, {{name}}! 🎉</h2>
+            
+            <p class="message">
+                Your order has been confirmed and we're already preparing your delicious treats! Your payment was successful and we'll start processing your order right away.
+            </p>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <div class="order-row">
+                    <span class="order-label">Order Number:</span>
+                    <span class="order-value">#{{orderId}}</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Order Date:</span>
+                    <span class="order-value">{{orderDate}}</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Total Amount:</span>
+                    <span class="order-value">₹{{totalAmount}}</span>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="items-list">
+                <h3>📦 Your Order Items</h3>
+                <ul>
+                    {{items}}
+                </ul>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="shipping-info">
+                <h3>🚚 Shipping Address</h3>
+                <p style="margin: 5px 0; color: #333; line-height: 1.6;">
+                    {{shippingAddress}}
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message">
+                We'll send you another email with tracking information once your order has been shipped. If you have any questions, feel free to reach out to us!
+            </p>
+
+            <p class="message" style="font-size: 14px; color: #666;">
+                Thank you for choosing Swaad-E-Sehat. We're honored to bring authentic flavors to your doorstep!
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Swaad-E-Sehat<br>
+                Premium Natural Sweets & Dry Fruits<br>
+                Made with Love, Served with Tradition
+            </p>
+            <p class="footer-text" style="font-size: 12px; opacity: 0.8; margin-top: 20px;">
+                © 2024 Swaad-E-Sehat. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

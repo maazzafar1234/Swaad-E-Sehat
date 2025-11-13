@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order - Admin Notification</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .alert-badge {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .alert-message {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #856404;
+            font-weight: 500;
+        }
+        .info-section {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            min-width: 140px;
+        }
+        .info-value {
+            color: #212529;
+        }
+        .order-total {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .order-total h2 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .order-total p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .items-table ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .items-table li {
+            padding: 5px 0;
+            color: #495057;
+        }
+        .action-required {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .action-required h3 {
+            color: #1976D2;
+            margin-top: 0;
+        }
+        .action-required ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .action-required li {
+            color: #424242;
+            padding: 5px 0;
+        }
+        .footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .info-row {
+                flex-direction: column;
+            }
+            .info-label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title">🔔 NEW ORDER RECEIVED</h1>
+            <div class="alert-badge">ACTION REQUIRED</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="alert-message">
+                ⚠️ A new order has been placed and payment has been confirmed. Please process this order immediately.
+            </div>
+
+            <!-- Order Total -->
+            <div class="order-total">
+                <p>Order Total</p>
+                <h2>₹{{totalAmount}}</h2>
+            </div>
+
+            <!-- Order Information -->
+            <div class="info-section">
+                <h3>📋 Order Details</h3>
+                <div class="info-row">
+                    <span class="info-label">Order ID:</span>
+                    <span class="info-value">#{{orderId}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Order Date:</span>
+                    <span class="info-value">{{orderDate}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Payment Status:</span>
+                    <span class="info-value" style="color: #27ae60; font-weight: bold;">✓ PAID (Online)</span>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="info-section">
+                <h3>👤 Customer Information</h3>
+                <div class="info-row">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value">{{customerName}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{customerEmail}}</span>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="info-section">
+                <h3>📦 Order Items</h3>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <ul>
+                                    {{items}}
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="info-section">
+                <h3>🚚 Shipping Address</h3>
+                <p style="margin: 0; color: #495057; line-height: 1.6;">
+                    {{shippingAddress}}
+                </p>
+            </div>
+
+            <!-- Action Required -->
+            <div class="action-required">
+                <h3>✅ Next Steps:</h3>
+                <ul>
+                    <li>Verify order items availability</li>
+                    <li>Prepare items for packaging</li>
+                    <li>Update order status in admin panel</li>
+                    <li>Arrange for shipping/delivery</li>
+                    <li>Send tracking information to customer</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 5px 0;">Swaad-E-Sehat Admin Panel</p>
+            <p style="margin: 5px 0; opacity: 0.7;">This is an automated notification. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

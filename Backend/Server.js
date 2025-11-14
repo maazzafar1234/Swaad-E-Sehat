@@ -28,4 +28,8 @@ app.use('/checkout', checkoutRoutes);
 app.use('/status', VerifyOrderRoutes);
 app.use('/stats', DashboardRoutes);
 
-module.exports = app;
+// module.exports = app;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

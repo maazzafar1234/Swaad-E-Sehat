@@ -11,8 +11,14 @@ const ContactController = require('./Controller/Contact.js');
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 5000;
 
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'https://www.swaadesehat.in',
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 
 app.get('/', (req, res) => {

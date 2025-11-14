@@ -35,7 +35,7 @@ const HomePage = () => {
               </h1>
               <p className="text-lg text-slate-600 max-w-lg text-balance">
                 Experience the authentic taste of traditional homemade sweets and premium dry fruits. 
-                Made with 100% natural ingredients and age-old recipes.
+                Made with 200% natural ingredients and age-old recipes.
               </p>
               <div className="flex gap-4 flex-wrap justify-center lg:justify-start">
                 <Link 

@@ -14,7 +14,7 @@ const PORT = process.env.EXPRESS_PORT || 5000;
 const corsOptions = {
     origin: [
         'https://www.swaadesehat.in',
-        'https://swaadesehat.in,
+        'https://swaadesehat.in',
         'http://localhost:3000', // for local development
     ],
     credentials: true,

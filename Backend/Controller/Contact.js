@@ -40,7 +40,7 @@ router.post("/api/contact/submit", contactFormLimiter, async (req, res) => {
         email: email || 'Not provided',
         phone: phone || 'Not provided',
         subject: subject || 'Not provided',
-        message: message || 'No message'
+        message: message
     }
     });
     } catch (emailError) {

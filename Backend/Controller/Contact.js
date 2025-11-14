@@ -37,7 +37,7 @@ router.post("/api/contact/submit", contactFormLimiter, async (req, res) => {
     template: 'contact-notification',
     payload: {
         name: name || 'Not provided',
-        email: email || 'Not provided',
+        email: email,
         phone: phone || 'Not provided',
         subject: subject || 'Not provided',
         message: message

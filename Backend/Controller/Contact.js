@@ -2,7 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const router = express.Router();
 const pool = require("../Config/db");
-const sendMail = require("../Utils/sendMail");
+const sendMail = require("../mail/mailWorker");
 
 // Rate limiter: max 5 requests per hour per IP for contact form
 const contactFormLimiter = rateLimit({

@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const pool = require('../Config/db');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { sendMail } = require('../mail/mailWorker');
 
 

@@ -24,7 +24,7 @@ const HomePage = () => {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="bg-slate-50 relative overflow-hidden">
+      <section className="bg-slate-50 relative overflow-hidden mt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Hero Text */}

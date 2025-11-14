@@ -1,9 +1,19 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const router = express.Router();
 const pool = require("../Config/db");
 const sendMail = require("../Utils/sendMail");
 
-router.post("/api/contact/submit", async (req, res) => {
+// Rate limiter: max 5 requests per hour per IP for contact form
+const contactFormLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+ max: 5, // limit each IP to 5 requests per windowMs
+ message: {
+   success: false,
+   message: "Too many contact form submissions from this IP, please try again after an hour."
+ }
+});
+router.post("/api/contact/submit", contactFormLimiter, async (req, res) => {
   const { name, email, phone, subject, message } = req.body;
 
   if (!name || !email || !message) {

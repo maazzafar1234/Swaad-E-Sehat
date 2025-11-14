@@ -7,6 +7,7 @@ const authRoutes = require('./Controller/auth.js');
 const checkoutRoutes = require('./Controller/CreateOrder.js');
 const VerifyOrderRoutes = require('./Controller/VerifyOrder.js');
 const DashboardRoutes = require('./Controller/dashboard.js');
+const ContactController = require('./Controller/Contact.js');
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 5000;
 
@@ -27,6 +28,7 @@ app.use('/auth', authRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/status', VerifyOrderRoutes);
 app.use('/stats', DashboardRoutes);
+app.use('/c', ContactController)
 
 // module.exports = app;
 

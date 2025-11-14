@@ -20,6 +20,12 @@ import Account from './pages/account';
 import UserDashboard from './pages/UserDashboard';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import TermAnsConditions from './pages/TermAnsConditions';
+import Shippingpage from './pages/Shipping.jsx';
+import ReturnAndRefund from './pages/ReturnAndRefund.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import FAQ from './pages/Faqs';
+import NotFound from "./pages/404";
 
 // Styles
 import './App.css';
@@ -45,9 +51,16 @@ function App() {
                 <Route path="/order-confirmation" element={<OrderConfirmation />} />
 
                 {/* Add more routes as needed */}
-                <Route path="*" element={<h2>404: Page Not Found</h2>} />
+                <Route path="*" element={<NotFound />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/user/dashboard" element={<UserDashboard />} />
+
+                {/* // Additional routes can be added here */}
+                <Route path="/terms-and-conditions" element={<TermAnsConditions />} />
+                <Route path="/shipping" element={<Shippingpage />} />
+                <Route path="/return-and-refund" element={<ReturnAndRefund />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/faq" element={<FAQ />} />
               </Routes>
             </main>
             <Footer />

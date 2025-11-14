@@ -43,7 +43,7 @@ const Account = () => {
     setSuccess('');
 
     try {
-      const response = await fetch('https://swaad-e-sehat.vercel.app/auth/login', {
+      const response = await fetch('https://api.swaadesehat.in/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ const Account = () => {
     }
 
     try {
-      const response = await fetch('https://swaad-e-sehat.vercel.app/auth/register', {
+      const response = await fetch('https://api.swaadesehat.in/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

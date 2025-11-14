@@ -52,7 +52,7 @@ const Footer = () => {
               >
                 <FiInstagram />
               </a>
-              <a 
+              {/* <a 
                 href="https://facebook.com/swaad-e-sehat" 
                 target="_blank" 
                 rel="noopener noreferrer" 
@@ -60,7 +60,7 @@ const Footer = () => {
                 aria-label="Facebook"
               >
                 <FiFacebook />
-              </a>
+              </a> */}
               <a 
                 href="https://wa.me/918178063094" 
                 target="_blank" 
@@ -121,7 +121,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/returns" className="text-slate-400 hover:text-amber-400 hover:pl-2 transition-all duration-200 inline-block">
+                <Link to="/return-and-refund" className="text-slate-400 hover:text-amber-400 hover:pl-2 transition-all duration-200 inline-block">
                   Returns & Refunds
                 </Link>
               </li>
@@ -131,7 +131,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-slate-400 hover:text-amber-400 hover:pl-2 transition-all duration-200 inline-block">
+                <Link to="/terms-and-conditions" className="text-slate-400 hover:text-amber-400 hover:pl-2 transition-all duration-200 inline-block">
                   Terms of Service
                 </Link>
               </li>
@@ -222,7 +222,7 @@ const Footer = () => {
               <Link to="/privacy" className="text-sm text-slate-500 hover:text-amber-400 transition-colors">
                 Privacy
               </Link>
-              <Link to="/terms" className="text-sm text-slate-500 hover:text-amber-400 transition-colors">
+              <Link to="/return-and-refund" className="text-sm text-slate-500 hover:text-amber-400 transition-colors">
                 Terms
               </Link>
               <Link to="/sitemap" className="text-sm text-slate-500 hover:text-amber-400 transition-colors">

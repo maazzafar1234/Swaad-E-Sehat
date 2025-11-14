@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FiMail, FiPhone, FiMapPin, FiSend } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import emailjs from '@emailjs/browser'; // Make sure you have this installed
+// --- 1. REMOVED emailjs, IMPORTED your API client ---
+import ClientApiInstance from '../api/axiosIntercepter'; // ⚠️ Check this path
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -14,17 +15,7 @@ const ContactPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- All your EmailJS and form logic is preserved ---
-  const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID || 'YOUR_SERVICE_ID';
-  const EMAILJS_TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
-  const EMAILJS_PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'YOUR_PUBLIC_KEY';
-  const RECIPIENT_EMAIL = 'maazzafar156@gmail.com';
-
-  const isEmailJSConfigured = () => {
-    return EMAILJS_SERVICE_ID !== 'YOUR_SERVICE_ID' && 
-           EMAILJS_TEMPLATE_ID !== 'YOUR_TEMPLATE_ID' && 
-           EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY';
-  };
+  // --- 2. All emailjs variables and functions are REMOVED ---
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,41 +25,35 @@ const ContactPage = () => {
     }));
   };
 
+  // --- 3. THIS IS THE NEW, API-DRIVEN handleSubmit FUNCTION ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!isEmailJSConfigured()) {
-      toast.error('Email service not configured. Please contact the site administrator.', { position: 'top-right' });
-      console.error('EmailJS not configured.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const templateParams = {
-        from_name: formData.name,
-        from_email: formData.email,
-        phone: formData.phone || 'Not provided',
-        subject: formData.subject || 'General Inquiry',
-        message: formData.message,
-        to_email: RECIPIENT_EMAIL,
-        reply_to: formData.email
-      };
+      
+      const endpoint = 'https://api.swaadesehat.in/c/api/contact/submit'; 
+      
+      const response = await axios.post(endpoint, formData);
 
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        templateParams,
-        EMAILJS_PUBLIC_KEY
-      );
-
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      toast.success('Message sent successfully! We will get back to you soon.', { position: 'top-right' });
+      if (response.data.success) {
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+        toast.success(response.data.message || 'Message sent successfully! We will get back to you soon.');
+      } else {
+        // Handle cases where the API returns a 200 OK but { success: false }
+        throw new Error(response.data.message || 'An unknown error occurred.');
+      }
 
     } catch (error) {
-      console.error('Email sending failed:', error);
-      toast.error('Failed to send message. Please try again later.', { position: 'top-right' });
+      console.error('Contact form submission failed:', error);
+      // Display the specific error message from the backend if it exists
+      toast.error(error.response?.data?.message || error.message || 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -103,13 +88,13 @@ const ContactPage = () => {
               <ContactInfoItem
                 icon={<FiPhone className="w-6 h-6" />}
                 title="Phone"
-                content="+91 88499 78818"
+                content="+91 88499 78818" // ⚠️ Make sure this is your correct phone
                 href="tel:+918849978818"
               />
               <ContactInfoItem
                 icon={<FiMail className="w-6 h-6" />}
                 title="Email"
-                content="info@swaad-e-sehat.com"
+                content="info@swaad-e-sehat.com" // ⚠️ Make sure this is your correct email
                 href="mailto:info@swaad-e-sehat.com"
               />
               <ContactInfoItem
@@ -171,11 +156,11 @@ const ContactPage = () => {
                     className="form-input bg-white" // bg-white needed for select
                   >
                     <option value="">Select a subject</option>
-                    <option value="general">General Inquiry</option>
-                    <option value="order">Order Related</option>
-                    <option value="custom">Custom Order</option>
-                    <option value="feedback">Feedback</option>
-                    <option value="other">Other</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Order Related">Order Related</option>
+                    <option value="Custom / Bulk Order">Custom / Bulk Order</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Other">Other</option>
                   </select>
                 </FormGroup>
               </div>
@@ -221,7 +206,6 @@ const ContactPage = () => {
   );
 };
 
-// --- Helper Components ---
 
 const ContactInfoItem = ({ icon, title, content, href }) => (
   <div className="flex items-start gap-4">

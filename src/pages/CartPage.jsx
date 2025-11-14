@@ -6,13 +6,12 @@ import {
   FiTrash2, 
   FiShoppingBag, 
   FiArrowLeft,
-  FiTruck,        // For benefits
-  FiShield,       // For benefits
-  FiRotateCcw     // For benefits
+  FiTruck,       
+  FiShield,      
+  FiRotateCcw    
 } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 
-// --- Main Cart Page Component ---
 const CartPage = () => {
   const { 
     items, 
@@ -22,7 +21,6 @@ const CartPage = () => {
     clearCart 
   } = useCart();
 
-  // --- Calculation Logic (from your component) ---
   const calculateSubtotal = () => {
     return items.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
@@ -38,15 +36,13 @@ const CartPage = () => {
 
   const subtotal = calculateSubtotal();
   const discount = calculateDiscount();
-  const tax = subtotal * 0.18; // 18% GST
-  const total = subtotal + tax; // Assuming shipping is free for now
+  const tax = subtotal * 0.18; //gst 18%
+  const total = subtotal + tax; 
 
-  // --- 1. Empty Cart State ---
   if (items.length === 0) {
     return <EmptyCart />;
   }
 
-  // --- 2. Populated Cart State ---
   return (
     <div className="w-full bg-slate-50 pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
@@ -133,12 +129,12 @@ const EmptyCart = () => (
             <h3 className="font-semibold text-slate-800">Try Our Premium Muscle Laddu</h3>
             <p className="text-sm text-slate-500">Packed with protein and premium dry fruits.</p>
           </div>
-          <Link 
+          {/* <Link 
             to="/product/dry-fruit-khajur-pak" // Update this slug to the correct one
             className="flex-shrink-0 w-full sm:w-auto px-4 py-2 text-sm font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all"
           >
             View Item
-          </Link>
+          </Link> */}
         </div>
         
         <Link 
@@ -300,7 +296,7 @@ const isLoggedIn = !!localStorage.getItem('authToken');
     <div className="p-6 border-t border-slate-100 space-y-3">
       <SummaryBenefit icon={<FiTruck />} text="Free shipping on orders over ₹500" />
       <SummaryBenefit icon={<FiShield />} text="Secure 100% payment processing" />
-      <SummaryBenefit icon={<FiRotateCcw />} text="Easy 7-day returns policy" />
+      <SummaryBenefit icon={<FiRotateCcw />} text="Secured Delivery" />
     </div>
   </div>
 )};

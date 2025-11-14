@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiPackage, FiAlertCircle, FiClock, FiCheck, FiX, FiShield, FiMail, FiCamera } from 'react-icons/fi';
 
-// COMPONENT NAME MUST BE CAPITALIZED
 const ReturnAndRefund = () => {
   return (
     <div className="w-full bg-gradient-to-b from-amber-50 via-white to-slate-50 pt-20">

@@ -3,7 +3,7 @@ import { FiMail, FiPhone, FiMapPin, FiSend } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 // --- 1. REMOVED emailjs, IMPORTED your API client ---
 import ClientApiInstance from '../api/axiosIntercepter'; // ⚠️ Check this path
-
+import axios from 'axios';
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',

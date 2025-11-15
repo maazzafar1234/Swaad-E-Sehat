@@ -7,8 +7,6 @@ import {
   FiEye, 
   FiPackage,
   FiX,
-  FiMinus,
-  FiPlus,
   FiCheck,
   FiLoader  
 } from 'react-icons/fi';

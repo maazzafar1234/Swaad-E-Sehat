@@ -49,7 +49,7 @@ const CheckoutPage = () => {
       toast.error("Your cart is empty. Redirecting...");
       navigate('/cart');
     }
-  }, [items, navigate, isProcessing]);
+  }, [items, navigate, isProcessing, isPolling]);
 
   // --- NEW: Effect to fetch user data and addresses ---
   useEffect(() => {

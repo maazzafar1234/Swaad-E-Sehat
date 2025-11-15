@@ -266,7 +266,7 @@ const CheckoutPage = () => {
         return;
       }
       try {
-        const response = await ClientApiInstance.get(`/verify-order/${pollingOrderId}`);
+        const response = await ClientApiInstance.get(`/status/verify-order/${pollingOrderId}`);
         const status = response.data.status;
         if (status === 'paid') {
           clearInterval(intervalId);

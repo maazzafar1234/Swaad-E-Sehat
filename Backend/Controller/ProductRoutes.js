@@ -13,7 +13,7 @@ const parseProduct = (product) => {
       tags: JSON.parse(product.tags || '[]')
     };
   } catch (e) {
-    console.error(`Failed to parse JSON for product ${product.id}`, e);
+    console.error('Failed to parse JSON for product:', e);
     return product;
   }
 };

@@ -42,7 +42,7 @@ app.use('/checkout', checkoutRoutes);
 app.use('/status', VerifyOrderRoutes);
 app.use('/stats', DashboardRoutes);
 app.use('/c', ContactController)
-app.use(productRoutes);
+app.use('/dynamic', productRoutes);
 
 // module.exports = app;
 

@@ -1,7 +1,7 @@
 import ClientApiInstance from '../api/axiosIntercepter'; 
 
 
-const API_URL = '/api/products'; 
+const API_URL = '/dynamic/api/products'; 
 
 
 export const getProductBySlug = async (slug) => {

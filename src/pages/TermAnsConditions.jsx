@@ -10,7 +10,6 @@ const TermsAndConditions = () => {
     <div className="w-full bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         
-        {/* Page Header */}
         <div className="text-center max-w-4xl mx-auto mb-16">
           <div className="inline-block mb-6">
             <div className="bg-slate-100 p-4 rounded-full">

@@ -21,10 +21,8 @@ const Footer = () => {
     <footer className="bg-slate-900 text-slate-300 mt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main Footer Content Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 py-16 lg:py-20">
 
-          {/* 1. Company Info */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-6">
               <img 
@@ -41,7 +39,6 @@ const Footer = () => {
               and organic ingredients. Experience the authentic taste of homemade goodness.
             </p>
             
-            {/* Social Links */}
             <div className="flex gap-3">
               <a 
                 href="https://instagram.com/swaad_e._sehat" 
@@ -73,7 +70,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* 2. Quick Links */}
           <div>
             <h4 className="text-lg font-bold text-white mb-6 relative inline-block">
               Quick Links
@@ -108,7 +104,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* 3. Customer Service */}
           <div>
             <h4 className="text-lg font-bold text-white mb-6 relative inline-block">
               Customer Service
@@ -143,7 +138,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* 4. Contact Info */}
           <div>
             <h4 className="text-lg font-bold text-white mb-6 relative inline-block">
               Contact Us
@@ -188,7 +182,6 @@ const Footer = () => {
 
         </div>
 
-        {/* Payment Methods Section */}
         <div className="border-t border-slate-800 py-10">
           <div className="text-center">
             <h4 className="text-lg font-bold text-white mb-6">Secure Payment Methods</h4>
@@ -212,7 +205,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-slate-800 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
             <p className="text-sm text-slate-500">

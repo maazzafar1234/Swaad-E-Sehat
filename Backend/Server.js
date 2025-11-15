@@ -8,6 +8,7 @@ const checkoutRoutes = require('./Controller/CreateOrder.js');
 const VerifyOrderRoutes = require('./Controller/VerifyOrder.js');
 const DashboardRoutes = require('./Controller/dashboard.js');
 const ContactController = require('./Controller/Contact.js');
+const productRoutes = require('./Controller/ProductRoutes');
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 5000;
 
@@ -41,6 +42,7 @@ app.use('/checkout', checkoutRoutes);
 app.use('/status', VerifyOrderRoutes);
 app.use('/stats', DashboardRoutes);
 app.use('/c', ContactController)
+app.use(productRoutes);
 
 // module.exports = app;
 

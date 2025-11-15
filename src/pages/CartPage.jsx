@@ -294,7 +294,7 @@ const OrderSummary = ({ subtotal, discount, tax, shippingCost, total, itemCount 
 const ShippingProgress = ({ subtotal }) => {
   const shippingThreshold = 500;
   const amountLeft = shippingThreshold - subtotal;
-  const percent = Math.min((subtotal / shippingThreshold) * 100, 100);
+  const percent = Math.max(0, Math.min((subtotal / shippingThreshold) * 100, 100));
 
   if (amountLeft <= 0) {
     return (

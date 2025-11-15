@@ -79,7 +79,9 @@ const ProductDetail = () => {
   const discountPercentage = hasDiscount
     ? Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)
     : 0;
-  const productImages = product.images || []; 
+  const productImages = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : ['/images/placeholder.jpg'];
 
   const handleAddToCart = () => {
     const productToAdd = {

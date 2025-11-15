@@ -366,7 +366,7 @@ const QuickViewModal = ({ productSlug, onClose }) => {
               {/* Variants */}
               <div className="mb-4">
                 <h3 className="text-sm font-medium text-slate-800 mb-2">
-                  Select Size: <span className="font-bold">{selectedVariant.name}</span>
+                  Select Size: <span className="font-bold">{selectedVariant?.name || 'N/A'}</span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {product.variants.map((variant, index) => (

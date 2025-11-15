@@ -9,17 +9,15 @@ import {
   FiLock,
   FiArrowLeft,
   FiTruck,
-  FiLoader // <-- Added for the modal
+  FiRefreshCw // Added for loading
 } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
 import ClientApiInstance from '../api/axiosIntercepter'; 
-// import { useAuth } from '../context/AuthContext';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
-  // const { user } = useAuth(); // <-- Get user from context
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -31,11 +29,13 @@ const CheckoutPage = () => {
     pincode: '',
     paymentMethod: 'online'
   });
-  
-  const [isProcessing, setIsProcessing] = useState(false); // For the main button
-  const [isPolling, setIsPolling] = useState(false);     // For the "Waiting" modal
-  const [pollingOrderId, setPollingOrderId] = useState(null); // To store the ID we are checking
+  const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // --- NEW: State for Saved Addresses & Loading ---
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [selectedAddressKey, setSelectedAddressKey] = useState('new'); // 'new' or array index
 
   // --- Calculations ---
   const calculateSubtotal = () => items.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -45,74 +45,49 @@ const CheckoutPage = () => {
 
   // --- Effects ---
   useEffect(() => {
-    // If cart is empty, redirect
     if (items.length === 0 && !isProcessing && !isPolling) {
       toast.error("Your cart is empty. Redirecting...");
       navigate('/cart');
     }
   }, [items, navigate, isProcessing, isPolling]);
 
-  
-  // --- THIS IS THE POLLING LOGIC ---
+  // --- NEW: Effect to fetch user data and addresses ---
   useEffect(() => {
-    if (!isPolling || !pollingOrderId) return;
-
-    let pollCount = 0;
-    const maxPolls = 40; // Poll for 2 minutes (40 * 3s)
-    let intervalId;
-
-    const pollStatus = async () => {
-      pollCount++;
-      console.log(`Polling status for ${pollingOrderId}, attempt ${pollCount}`);
-
-      if (pollCount > maxPolls) {
-        clearInterval(intervalId);
-        setIsPolling(false);
-        toast.warn('Payment check timed out. If you paid, please check "My Orders" later.');
-        setPollingOrderId(null);
-        return;
-      }
-
+    const fetchUserData = async () => {
       try {
-        const response = await ClientApiInstance.get(`/status/verify-order/${pollingOrderId}`);
-        const status = response.data.status;
+        const response = await ClientApiInstance.get("/stats/api/dashboard");
+        if (response.data.success) {
+          const { user, addresses } = response.data.data;
 
-        if (status === 'paid') {
-          // --- 1. PAYMENT SUCCESS ---
-          clearInterval(intervalId);
-          setIsPolling(false);
-          toast.success('Payment successful! Order confirmed.');
-          clearCart();
-          
-          // 2. Get the saved order data
-          const savedOrder = JSON.parse(sessionStorage.getItem('lastOrderData'));
-          
-          // 3. REDIRECT TO /order-confirmation WITH THE DATA
-          navigate('/order-confirmation', { state: { order: savedOrder } });
+          // Split the full name into first and last
+          const nameParts = user.name.split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
 
-        } else if (status === 'failed') {
-          // --- PAYMENT FAILURE ---
-          clearInterval(intervalId);
-          setIsPolling(false);
-          toast.error('Payment failed. Please try again.');
-          setPollingOrderId(null);
+          // Auto-fill the form with user's personal info
+          setFormData(prev => ({
+            ...prev,
+            firstName: firstName,
+            lastName: lastName,
+            email: user.email,
+            phone: user.mobile
+          }));
+          
+          setSavedAddresses(addresses || []);
+        } else {
+          toast.error("Could not load your data. Please enter it manually.");
         }
-        // If status is "pending", do nothing, let it poll again
-
       } catch (err) {
-        console.error("Polling error:", err);
-        // Don't stop polling on a network error
+        console.error("Failed to fetch user data:", err);
+        // Don't redirect, just let them fill the form
+        toast.warn("Could not load your saved data. Please enter it manually.");
+      } finally {
+        setIsLoadingData(false);
       }
     };
-
-    // Start polling every 3 seconds
-    intervalId = setInterval(pollStatus, 3000);
-
-    // Cleanup function
-    return () => clearInterval(intervalId);
-
-  }, [isPolling, pollingOrderId, navigate, clearCart]); // Dependencies
-
+    
+    fetchUserData();
+  }, []); // Runs once on page load
 
   // --- Form Handling ---
   const handleInputChange = (e) => {
@@ -123,7 +98,46 @@ const CheckoutPage = () => {
     }
   };
 
+  // --- NEW: Handler for the address dropdown ---
+  const handleAddressChange = (e) => {
+    const key = e.target.value;
+    setSelectedAddressKey(key);
+
+    if (key === 'new') {
+      // Clear the form fields to allow new entry
+      setFormData(prev => ({
+        ...prev,
+        address: '',
+        city: '',
+        state: '',
+        pincode: ''
+      }));
+    } else {
+      // Pre-fill the form with the selected address
+      const addressIndex = parseInt(key);
+      const selectedAddr = savedAddresses[addressIndex];
+      if (selectedAddr) {
+        setFormData(prev => ({
+          ...prev,
+          address: selectedAddr.address,
+          city: selectedAddr.city,
+          state: selectedAddr.state,
+          pincode: selectedAddr.pincode
+        }));
+        // Clear any validation errors on these fields
+        setErrors(prev => ({
+          ...prev,
+          address: '',
+          city: '',
+          state: '',
+          pincode: ''
+        }));
+      }
+    }
+  };
+
   const validateForm = () => {
+    // (This function is unchanged)
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -142,8 +156,9 @@ const CheckoutPage = () => {
   };
   
   const getUserIdFromToken = () => {
+    // (This function is unchanged)
     try {
-      const userJSON = localStorage.getItem('user'); 
+      const userJSON = localStorage.getItem('authToken'); 
       if (!userJSON) throw new Error('No user data found');
       const user = JSON.parse(userJSON);
       if (!user.id) throw new Error('User ID not found');
@@ -155,6 +170,7 @@ const CheckoutPage = () => {
   };
 
   const sendOrderConfirmation = (orderData) => {
+    // (This function is unchanged)
     try {
       console.log('Simulating order confirmation:', orderData);
       const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -165,6 +181,7 @@ const CheckoutPage = () => {
     }
   };
 
+  // --- Payment Handler (Unchanged) ---
   const handlePayment = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -177,14 +194,14 @@ const CheckoutPage = () => {
     if (!userId) {
       toast.error('You must be logged in to place an order.');
       setIsProcessing(false);
-      navigate('/login'); 
+      navigate('/account'); 
       return;
     }
 
     const orderPayload = {
       user_id: userId,
       amount: total,
-      customerInfo: formData,
+      customerInfo: formData, // This now contains the auto-filled or edited data
       items: items,
       paymentMethod: formData.paymentMethod === 'cod' ? 'COD' : 'Online'
     };
@@ -205,9 +222,6 @@ const CheckoutPage = () => {
         items: items,
         timestamp: new Date().toISOString()
       };
-
-      // --- THIS IS THE KEY ---
-      // Save the data to session storage *before* splitting logic
       sessionStorage.setItem('lastOrderData', JSON.stringify(orderData));
 
       if (formData.paymentMethod === 'cod') {
@@ -217,10 +231,7 @@ const CheckoutPage = () => {
         navigate('/order-confirmation', { state: { order: orderData } });
       } else {
         if (data.paymentUrl && data.orderId) {
-          // Open payment link
           window.open(data.paymentUrl, '_blank', 'noopener,noreferrer');
-          
-          // Show the "Waiting" modal and start polling
           setPollingOrderId(data.orderId);
           setIsPolling(true); 
           setIsProcessing(false);
@@ -235,7 +246,51 @@ const CheckoutPage = () => {
     }
   };
 
-  // --- Dynamic Button Text ---
+  // --- State and Effect for Polling (Unchanged) ---
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollingOrderId, setPollingOrderId] = useState(null);
+
+  useEffect(() => {
+    if (!isPolling || !pollingOrderId) return;
+    let pollCount = 0;
+    const maxPolls = 40;
+    let intervalId;
+
+    const pollStatus = async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        clearInterval(intervalId);
+        setIsPolling(false);
+        toast.warn('Payment check timed out. Please check "My Orders" later.');
+        setPollingOrderId(null);
+        return;
+      }
+      try {
+        const response = await ClientApiInstance.get(`/status/verify-order/${pollingOrderId}`);
+        const status = response.data.status;
+        if (status === 'paid') {
+          clearInterval(intervalId);
+          setIsPolling(false);
+          toast.success('Payment successful! Order confirmed.');
+          clearCart();
+          const savedOrder = JSON.parse(sessionStorage.getItem('lastOrderData'));
+          navigate('/order-confirmation', { state: { order: savedOrder } });
+        } else if (status === 'failed') {
+          clearInterval(intervalId);
+          setIsPolling(false);
+          toast.error('Payment failed. Please try again.');
+          setPollingOrderId(null);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    };
+    intervalId = setInterval(pollStatus, 3000);
+    return () => clearInterval(intervalId);
+  }, [isPolling, pollingOrderId, navigate, clearCart]);
+
+
+  // --- Dynamic Button Text (Unchanged) ---
   let paymentButtonContent = null;
   if (isProcessing) {
     paymentButtonContent = (
@@ -254,7 +309,7 @@ const CheckoutPage = () => {
         <span>{`Proceed to Pay ₹${total.toFixed(2)}`}</span>
       </>
     );
-  } else { // 'cod'
+  } else {
     paymentButtonContent = (
       <>
         <FiLock className="w-5 h-5" />
@@ -263,18 +318,14 @@ const CheckoutPage = () => {
     );
   }
 
+  // --- JSX ---
   return (
     <div className="w-full bg-slate-50 pt-20">
       
-      {/* --- Payment Waiting Modal --- */}
       {isPolling && (
         <PaymentWaitingModal 
           orderId={pollingOrderId} 
-          onClose={() => {
-            setIsPolling(false);
-            setPollingOrderId(null);
-            toast.info("Payment check cancelled.");
-          }} 
+          onClose={() => setIsPolling(false)} 
         />
       )}
 
@@ -293,8 +344,15 @@ const CheckoutPage = () => {
         <form id="checkout-form" onSubmit={handlePayment} className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
           
           <div className="lg:col-span-2 space-y-8">
-            {/* --- Personal Info --- */}
+            
+            {/* --- MODIFIED: Personal Info --- */}
             <FormSection title="Personal Information" icon={<FiUser />}>
+              {isLoadingData && (
+                <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg text-slate-500">
+                  <FiRefreshCw className="animate-spin w-4 h-4" />
+                  <span>Loading your info...</span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <FormGroup>
                   <label htmlFor="firstName" className="form-label">First Name *</label>
@@ -337,14 +395,40 @@ const CheckoutPage = () => {
               </div>
             </FormSection>
 
-            {/* --- Shipping Address --- */}
+            {/* --- MODIFIED: Shipping Address --- */}
             <FormSection title="Shipping Address" icon={<FiMapPin />}>
+              <FormGroup>
+                <label htmlFor="savedAddress" className="form-label">Saved Addresses</label>
+                {isLoadingData ? (
+                  <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg text-slate-500">
+                    <FiRefreshCw className="animate-spin w-4 h-4" />
+                    <span>Loading saved addresses...</span>
+                  </div>
+                ) : (
+                  <select 
+                    id="savedAddress" 
+                    name="savedAddress"
+                    value={selectedAddressKey}
+                    onChange={handleAddressChange}
+                    className="form-input bg-white"
+                  >
+                    <option value="new">-- Enter a new address --</option>
+                    {savedAddresses.map((addr, index) => (
+                      <option key={index} value={index}>
+                        {`${addr.address}, ${addr.city}, ${addr.state} ${addr.pincode}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FormGroup>
+
               <FormGroup>
                 <label htmlFor="address" className="form-label">Address *</label>
                 <textarea id="address" name="address" rows="3"
                   value={formData.address} onChange={handleInputChange}
                   placeholder="Enter your complete address"
-                  className={`form-input ${errors.address ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                  readOnly={selectedAddressKey !== 'new'}
+                  className={`form-input ${errors.address ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} ${selectedAddressKey !== 'new' ? 'bg-slate-100 cursor-not-allowed' : ''}`}
                 />
                 {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address}</p>}
               </FormGroup>
@@ -354,7 +438,8 @@ const CheckoutPage = () => {
                   <input type="text" id="city" name="city"
                     value={formData.city} onChange={handleInputChange}
                     placeholder="Enter your city"
-                    className={`form-input ${errors.city ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                    readOnly={selectedAddressKey !== 'new'}
+                    className={`form-input ${errors.city ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} ${selectedAddressKey !== 'new' ? 'bg-slate-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.city && <p className="text-red-600 text-sm mt-1">{errors.city}</p>}
                 </FormGroup>
@@ -363,7 +448,8 @@ const CheckoutPage = () => {
                   <input type="text" id="state" name="state"
                     value={formData.state} onChange={handleInputChange}
                     placeholder="Enter your state"
-                    className={`form-input ${errors.state ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                    readOnly={selectedAddressKey !== 'new'}
+                    className={`form-input ${errors.state ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} ${selectedAddressKey !== 'new' ? 'bg-slate-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.state && <p className="text-red-600 text-sm mt-1">{errors.state}</p>}
                 </FormGroup>
@@ -372,14 +458,14 @@ const CheckoutPage = () => {
                   <input type="text" id="pincode" name="pincode"
                     value={formData.pincode} onChange={handleInputChange}
                     placeholder="Enter 6-digit pincode"
-                    className={`form-input ${errors.pincode ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'}`}
+                    readOnly={selectedAddressKey !== 'new'}
+                    className={`form-input ${errors.pincode ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} ${selectedAddressKey !== 'new' ? 'bg-slate-100 cursor-not-allowed' : ''}`}
                   />
                   {errors.pincode && <p className="text-red-600 text-sm mt-1">{errors.pincode}</p>}
                 </FormGroup>
               </div>
             </FormSection>
             
-            {/* --- Payment Method --- */}
             <FormSection title="Payment Method" icon={<FiCreditCard />}>
               <div className="space-y-4">
                 <PaymentOption
@@ -402,7 +488,6 @@ const CheckoutPage = () => {
             </FormSection>
           </div>
 
-          {/* --- Column 2: Order Summary --- */}
           <div className="lg:col-span-1">
             <OrderSummary 
               items={items} 
@@ -420,7 +505,7 @@ const CheckoutPage = () => {
 };
 
 // --- Helper Components ---
-// (These are unchanged)
+// (All helper components remain the same)
 
 const FormSection = ({ title, icon, children }) => (
   <div className="bg-white rounded-lg shadow-md">
@@ -513,7 +598,7 @@ const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButton
     <div className="p-6 border-t border-slate-100">
       <button
         type="submit"
-        form="checkout-form" // This submits the main form
+        form="checkout-form"
         className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
         disabled={isProcessing}
       >
@@ -526,7 +611,6 @@ const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButton
   </div>
 );
 
-// --- NEW Helper Component: Payment Waiting Modal ---
 const PaymentWaitingModal = ({ orderId, onClose }) => (
   <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[999]">
     <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center mx-4">

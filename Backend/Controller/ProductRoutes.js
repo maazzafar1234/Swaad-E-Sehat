@@ -91,6 +91,9 @@ router.get("/api/products", async (req, res) => {
 router.get("/api/products/slug/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      return res.status(400).json({ success: false, message: "Invalid product slug" });
+    }
 
     const [productRows] = await pool.query(
       "SELECT * FROM products WHERE slug = ?", [slug]

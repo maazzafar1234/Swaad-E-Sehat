@@ -55,12 +55,33 @@ const ProductDetail = () => {
   }
 
 
-  if (!product || !selectedVariant) {
+  // Handle product not found
+  if (!product) {
     return (
       <div className="w-full bg-slate-50 pt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
           <h1 className="text-4xl font-bold font-serif text-slate-800 mb-4">Product Not Found</h1>
           <p className="text-lg text-slate-600 mb-8">The product you're looking for doesn't exist.</p>
+          <button 
+            onClick={() => navigate('/products')} 
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle product with no variants available
+  if (!selectedVariant) {
+    return (
+      <div className="w-full bg-slate-50 pt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-4xl font-bold font-serif text-slate-800 mb-4">No Variants Available</h1>
+          <p className="text-lg text-slate-600 mb-8">
+            The product "{product.name}" exists but has no variants available at this time.
+          </p>
           <button 
             onClick={() => navigate('/products')} 
             className="inline-flex items-center justify-center gap-2 px-8 py-3 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all"

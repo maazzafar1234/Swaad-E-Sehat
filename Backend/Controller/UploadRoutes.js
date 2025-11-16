@@ -4,7 +4,17 @@ const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs").promises;
+const rateLimit = require("express-rate-limit");
 const adminAuth = require("../Middleware/adminAuth");
+
+// Rate limiter for upload endpoint
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 requests per windowMs
+  message: "Too many upload requests, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Use memory storage for multer to process images before saving
 const storage = multer.memoryStorage();
@@ -29,6 +39,7 @@ const upload = multer({
 
 router.post(
   "/api/admin/upload-image",
+  uploadLimiter,
   upload.single("image"),
   async (req, res) => {
     try {

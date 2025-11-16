@@ -45,7 +45,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const [data] = await pool.query(
-      "SELECT id, name, email, password, last_login_at FROM users WHERE email = ?",
+      "SELECT id, name, email, password, role, last_login_at FROM users WHERE email = ?",
       [email]
     );
 
@@ -82,7 +82,7 @@ router.post("/login", async (req, res) => {
       success: true,
       message: "Login successful",
       token: sessionToken,
-      user: { name: u.name, email: u.email }
+      user: { name: u.name, email: u.email , role: u.role }
     });
 
   } catch (err) {

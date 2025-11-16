@@ -10,9 +10,8 @@ import {
   FiMapPin, 
   FiPhone, 
   FiMail, 
-  FiCalendar,
-  FiLogOut, 
-  FiCreditCard 
+  FiLogOut,
+  FiShield
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import ClientApiInstance from '../api/axiosIntercepter';
@@ -22,6 +21,7 @@ const UserDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const [activeModal, setActiveModal] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -54,7 +54,24 @@ const UserDashboard = () => {
       }
     };
 
+    const checkAdminRole = () => {
+      try {
+        const authToken = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('user');
+        
+        if (authToken && userData) {
+          const parsedUser = JSON.parse(userData);
+          if (parsedUser.role === 'admin') {
+            setIsAdmin(true);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking admin role:", err);
+      }
+    };
+
     fetchDashboardData();
+    checkAdminRole();
   }, [navigate]);
 
   const openModal = (modalType, data = null) => {
@@ -75,6 +92,10 @@ const UserDashboard = () => {
     navigate('/account'); 
   };
 
+  const handleAdminAccess = () => {
+    navigate('/admin');
+  };
+
   const handleProfileUpdate = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -84,7 +105,6 @@ const UserDashboard = () => {
       email: formData.get('email'),
       phone: formData.get('phone'),
     };
-    
     
     setUser(updatedUser);
     toast.success("Profile updated!");
@@ -106,7 +126,6 @@ const UserDashboard = () => {
       isDefault: addresses.length === 0,
     };
 
-    
     setAddresses([...addresses, newAddress]);
     closeModal();
   };
@@ -124,15 +143,15 @@ const UserDashboard = () => {
   
   const getStatusColor = (status) => {
     const colors = {
-      'Delivered': 'bg-green-100 text-green-700',
-      'Processing': 'bg-blue-100 text-blue-700',
-      'Shipped': 'bg-purple-100 text-purple-700',
-      'Cancelled': 'bg-red-100 text-red-700',
-      'paid': 'bg-green-100 text-green-700',
-      'pending': 'bg-amber-100 text-amber-700',
-      'failed': 'bg-red-100 text-red-700',
+      'Delivered': 'bg-green-100 text-green-800',
+      'Processing': 'bg-blue-100 text-blue-800',
+      'Shipped': 'bg-purple-100 text-purple-800',
+      'Cancelled': 'bg-red-100 text-red-800',
+      'paid': 'bg-green-100 text-green-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'failed': 'bg-red-100 text-red-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-700';
+    return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   if (isLoading) {
@@ -142,25 +161,36 @@ const UserDashboard = () => {
   const recentOrder = orders?.[0]; 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 p-4 md:p-8 pt-24">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-          <div className="flex flex-col sm:flex-row items-start justify-between">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 pt-24">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-800">
-                Welcome back, {user?.name?.split(' ')[0]}! 👋
-              </h2>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+                Welcome, {user?.name?.split(' ')[0]}
+              </h1>
               <p className="text-slate-600 mt-2">
-                Manage your orders, profile, and addresses all in one place.
+                Manage your profile, orders, and addresses
               </p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="mt-4 sm:mt-0 flex-shrink-0 flex items-center gap-2 px-5 py-2.5 font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all"
-            >
-              <FiLogOut className="w-5 h-5" />
-              <span>Logout</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              {isAdmin && (
+                <button
+                  onClick={handleAdminAccess}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <FiShield className="w-5 h-5" />
+                  <span>Admin Panel</span>
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                <FiLogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -168,66 +198,66 @@ const UserDashboard = () => {
           <QuickLink 
             onClick={() => openModal('orders')} 
             icon={<FiPackage />} 
-            title="My Orders" 
-            subtitle={`${orders?.length || 0} total orders`}
+            title="Orders" 
+            subtitle={`${orders?.length || 0} orders`}
           />
           <QuickLink 
             onClick={() => openModal('profile')} 
             icon={<FiUser />} 
-            title="My Profile" 
-            subtitle="View & edit details"
+            title="Profile" 
+            subtitle="View & edit"
           />
           <QuickLink 
             onClick={() => openModal('addresses')} 
             icon={<FiMapPin />} 
-            title="My Addresses" 
-            subtitle={`${addresses?.length || 0} saved addresses`}
+            title="Addresses" 
+            subtitle={`${addresses?.length || 0} saved`}
           />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-          <h3 className="text-2xl font-bold text-slate-800 mb-6">Recent Order</h3>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Recent Order</h2>
           {recentOrder ? (
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 p-4 bg-amber-50 rounded-xl">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 p-5 bg-slate-50 rounded-lg border border-slate-200">
               <div>
-                <p className="font-bold text-lg text-slate-800">{recentOrder.id}</p>
-                <p className="text-slate-600">{new Date(recentOrder.created_at).toLocaleDateString()}</p>
-                <p className="text-lg font-semibold text-amber-600 mt-1">₹{recentOrder.total_amount}</p>
+                <p className="font-semibold text-slate-900">{recentOrder.id}</p>
+                <p className="text-sm text-slate-600 mt-1">{new Date(recentOrder.created_at).toLocaleDateString()}</p>
+                <p className="text-lg font-semibold text-slate-900 mt-2">₹{recentOrder.total_amount}</p>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`px-4 py-2 text-sm font-semibold rounded-full ${getStatusColor(recentOrder.order_status)}`}>
+              <div className="flex items-center gap-3">
+                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(recentOrder.order_status)}`}>
                   {recentOrder.order_status}
                 </span>
                 <button 
                   onClick={() => openModal('orderDetail', recentOrder)}
-                  className="px-6 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+                  className="px-5 py-2 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors text-sm"
                 >
                   View Details
                 </button>
               </div>
             </div>
           ) : (
-            <p className="text-slate-500">No recent orders found.</p>
+            <p className="text-slate-500 text-center py-8">No recent orders</p>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-slate-800">Saved Addresses</h3>
+            <h2 className="text-2xl font-bold text-slate-900">Addresses</h2>
             <button 
               onClick={() => openModal('addresses')}
-              className="text-amber-600 font-semibold hover:text-amber-700"
+              className="text-slate-600 font-semibold hover:text-slate-900 text-sm"
             >
               View All →
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {addresses?.length > 0 ? addresses.slice(0, 2).map((addr, index) => (
-              <div key={index} className="p-4 border-2 border-slate-200 rounded-lg">
+              <div key={index} className="p-4 border border-slate-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-slate-800">{addr.type || 'Address'}</span>
+                  <span className="font-semibold text-slate-900">{addr.type || 'Address'}</span>
                   {addr.isDefault && (
-                    <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">Default</span>
+                    <span className="px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded-full">Default</span>
                   )}
                 </div>
                 <p className="text-sm text-slate-600">
@@ -235,7 +265,7 @@ const UserDashboard = () => {
                 </p>
               </div>
             )) : (
-              <p className="text-slate-500 md:col-span-2">No saved addresses found.</p>
+              <p className="text-slate-500 md:col-span-2 text-sm">No addresses yet</p>
             )}
           </div>
         </div>
@@ -260,58 +290,49 @@ const UserDashboard = () => {
 };
 
 const DashboardLoadingSkeleton = () => (
-  <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 p-4 md:p-8 pt-24 animate-pulse">
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+  <div className="min-h-screen bg-slate-50 p-4 md:p-8 pt-24 animate-pulse">
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
         <div className="h-10 bg-slate-200 rounded-lg w-3/4 mb-4"></div>
         <div className="h-4 bg-slate-200 rounded-lg w-1/2"></div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
+        <div className="bg-white p-6 rounded-xl shadow-sm h-32"></div>
+        <div className="bg-white p-6 rounded-xl shadow-sm h-32"></div>
+        <div className="bg-white p-6 rounded-xl shadow-sm h-32"></div>
       </div>
-      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+      <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
         <div className="h-8 bg-slate-200 rounded-lg w-1/4 mb-6"></div>
-        <div className="h-24 bg-slate-100 rounded-xl"></div>
-      </div>
-      <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-        <div className="h-8 bg-slate-200 rounded-lg w-1/3 mb-6"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-16 bg-slate-100 rounded-lg"></div>
-          <div className="h-16 bg-slate-100 rounded-lg"></div>
-        </div>
+        <div className="h-24 bg-slate-100 rounded-lg"></div>
       </div>
     </div>
   </div>
 );
 
-
-
 const QuickLink = ({ onClick, icon, title, subtitle }) => (
   <button 
     onClick={onClick}
-    className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-left group"
+    className="bg-white border border-slate-200 p-6 rounded-xl hover:shadow-md hover:border-slate-300 transition-all text-left group"
   >
     <div className="flex items-center gap-4">
-      <div className="p-4 bg-amber-100 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
-        {React.cloneElement(icon, { className: 'w-7 h-7' })}
+      <div className="p-3 bg-slate-100 text-slate-700 rounded-lg group-hover:bg-slate-200 transition-colors">
+        {React.cloneElement(icon, { className: 'w-6 h-6' })}
       </div>
       <div>
-        <h4 className="text-xl font-bold text-slate-800 group-hover:text-amber-600 transition-colors">
+        <h3 className="text-lg font-semibold text-slate-900">
           {title}
-        </h4>
-        <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+        </h3>
+        <p className="text-sm text-slate-600 mt-1">{subtitle}</p>
       </div>
     </div>
   </button>
 );
 
 const Modal = ({ onClose, title, children, size = 'max-w-4xl' }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-    <div className={`bg-white rounded-2xl shadow-2xl ${size} w-full max-h-[90vh] flex flex-col`} onClick={e => e.stopPropagation()}>
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className={`bg-white rounded-xl shadow-lg ${size} w-full max-h-[90vh] flex flex-col`} onClick={e => e.stopPropagation()}>
       <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-        <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
+        <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
         <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
           <FiX className="w-6 h-6" />
         </button>
@@ -325,30 +346,30 @@ const Modal = ({ onClose, title, children, size = 'max-w-4xl' }) => (
 
 const OrdersModal = ({ orders, onClose, onViewOrder, getStatusColor }) => (
   <Modal onClose={onClose} title="My Orders">
-    <div className="space-y-4">
+    <div className="space-y-3">
       {orders.length > 0 ? orders.map(order => (
-        <div key={order.id} className="border-2 border-slate-200 rounded-xl p-6 hover:border-amber-300 transition-colors">
+        <div key={order.id} className="border border-slate-200 rounded-lg p-5 hover:border-slate-300 hover:shadow-sm transition-all">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div>
-              <p className="font-bold text-lg text-slate-800">{order.id}</p>
-              <p className="text-slate-600">{new Date(order.created_at).toLocaleDateString()}</p>
-              <p className="text-lg font-semibold text-amber-600 mt-1">₹{order.total_amount}</p>
+              <p className="font-semibold text-slate-900">{order.id}</p>
+              <p className="text-sm text-slate-600 mt-1">{new Date(order.created_at).toLocaleDateString()}</p>
+              <p className="text-lg font-semibold text-slate-900 mt-2">₹{order.total_amount}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className={`px-4 py-2 text-sm font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
+            <div className="flex items-center gap-3">
+              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
                 {order.order_status}
               </span>
               <button 
                 onClick={() => onViewOrder(order)}
-                className="px-6 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+                className="px-5 py-2 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors text-sm"
               >
-                View Details
+                Details
               </button>
             </div>
           </div>
         </div>
       )) : (
-        <p className="text-slate-500 text-center py-8">You have not placed any orders yet.</p>
+        <p className="text-slate-500 text-center py-8">No orders yet</p>
       )}
     </div>
   </Modal>
@@ -357,50 +378,44 @@ const OrdersModal = ({ orders, onClose, onViewOrder, getStatusColor }) => (
 const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
   <Modal onClose={onClose} title={`Order ${order.id}`}>
     <div className="space-y-6">
-      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
+      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
         <div>
-          <p className="text-sm text-slate-600">Order Date</p>
-          <p className="font-semibold text-slate-800">{new Date(order.created_at).toLocaleDateString()}</p>
+          <p className="text-xs text-slate-600">Order Date</p>
+          <p className="font-semibold text-slate-900 mt-1">{new Date(order.created_at).toLocaleDateString()}</p>
         </div>
         <span className={`px-4 py-2 text-sm font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
           {order.order_status}
         </span>
       </div>
 
-      <div>
-        <h4 className="font-bold text-lg text-slate-800 mb-3">Order Items</h4>
-        <div className="p-4 border border-slate-200 rounded-lg text-slate-500">
-        </div>
-      </div>
-
       <div className="border-t border-slate-200 pt-4">
-        <div className="space-y-2">
-          <div className="flex justify-between">
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
             <span className="text-slate-600">Subtotal</span>
-            <span className="font-semibold">₹{order.subtotal || order.total_amount}</span>
+            <span className="font-semibold text-slate-900">₹{order.subtotal || order.total_amount}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t border-slate-200">
-            <span className="text-lg font-bold text-slate-800">Total</span>
-            <span className="text-lg font-bold text-amber-600">₹{order.total_amount}</span>
+          <div className="flex justify-between pt-3 border-t border-slate-200">
+            <span className="font-semibold text-slate-900">Total</span>
+            <span className="text-lg font-bold text-slate-900">₹{order.total_amount}</span>
           </div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="p-4 bg-slate-50 rounded-lg">
-          <h5 className="font-semibold text-slate-800 mb-2">Shipping Address</h5>
-          <p className="text-sm text-slate-600">
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 className="font-semibold text-slate-900 mb-3 text-sm">Shipping Address</h4>
+          <p className="text-sm text-slate-600 leading-relaxed">
             {order.cust_first_name} {order.cust_last_name}<br />
             {order.address}<br />
             {order.city}, {order.state} {order.pincode}
           </p>
         </div>
-        <div className="p-4 bg-slate-50 rounded-lg">
-          <h5 className="font-semibold text-slate-800 mb-2">Payment Method</h5>
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 className="font-semibold text-slate-900 mb-3 text-sm">Payment Method</h4>
           <p className="text-sm text-slate-600">
             {order.payment_method}
-            <br />
-            Status: <span className="font-semibold">{order.payment_status}</span>
+            <br className="mt-2" />
+            Status: <span className="font-semibold text-slate-900">{order.payment_status}</span>
           </p>
         </div>
       </div>
@@ -411,37 +426,37 @@ const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
 const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
   <Modal onClose={onClose} title="My Profile" size="max-w-2xl">
     {!editing ? (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 p-6 bg-amber-50 rounded-xl">
-          <div className="w-20 h-20 bg-amber-600 text-white rounded-full flex items-center justify-center text-3xl font-bold">
+      <div className="space-y-5">
+        <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="w-16 h-16 bg-slate-300 text-white rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0">
             {user.name.split(' ').map(n => n[0]).join('')}
           </div>
           <div>
-            <h4 className="text-2xl font-bold text-slate-800">{user.name}</h4>
-            <p className="text-slate-600">Member since {new Date(user.created_at).toLocaleDateString()}</p>
+            <h3 className="text-xl font-bold text-slate-900">{user.name}</h3>
+            <p className="text-sm text-slate-600 mt-1">Member since {new Date(user.created_at).toLocaleDateString()}</p>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg">
-            <FiMail className="w-5 h-5 text-amber-600" />
+            <FiMail className="w-5 h-5 text-slate-500 flex-shrink-0" />
             <div>
-              <p className="text-sm text-slate-500">Email</p>
-              <p className="font-semibold text-slate-800">{user.email}</p>
+              <p className="text-xs text-slate-500">Email</p>
+              <p className="font-semibold text-slate-900 mt-1">{user.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg">
-            <FiPhone className="w-5 h-5 text-amber-600" />
+            <FiPhone className="w-5 h-5 text-slate-500 flex-shrink-0" />
             <div>
-              <p className="text-sm text-slate-500">Phone</p>
-              <p className="font-semibold text-slate-800">{user.mobile}</p>
+              <p className="text-xs text-slate-500">Phone</p>
+              <p className="font-semibold text-slate-900 mt-1">{user.mobile}</p>
             </div>
           </div>
         </div>
 
         <button 
           onClick={() => setEditing(true)}
-          className="w-full py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
+          className="w-full py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
         >
           <FiEdit2 /> Edit Profile
         </button>
@@ -454,7 +469,7 @@ const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
             type="text" 
             name="name" 
             defaultValue={user.name}
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             required
           />
         </div>
@@ -464,7 +479,7 @@ const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
             type="email" 
             name="email" 
             defaultValue={user.email}
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             required
           />
         </div>
@@ -474,14 +489,14 @@ const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
             type="tel" 
             name="phone" 
             defaultValue={user.mobile}
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             required
           />
         </div>
         <div className="flex gap-3 pt-4">
           <button 
             type="submit"
-            className="flex-1 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+            className="flex-1 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors"
           >
             Save Changes
           </button>
@@ -500,40 +515,40 @@ const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
 
 const AddressesModal = ({ addresses, onClose, onDelete, onSetDefault, onAdd }) => (
   <Modal onClose={onClose} title="Saved Addresses">
-    <div className="space-y-4">
+    <div className="space-y-3">
       {addresses.map((addr, index) => (
-        <div key={index} className="border-2 border-slate-200 rounded-xl p-4">
+        <div key={index} className="border border-slate-200 rounded-lg p-4">
           <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <FiMapPin className="w-6 h-6 text-amber-600 mt-1" />
+            <div className="flex items-start gap-3 flex-1">
+              <FiMapPin className="w-5 h-5 text-slate-500 mt-1 flex-shrink-0" />
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-slate-800">{addr.type || 'Address'}</p>
+                  <p className="font-semibold text-slate-900">{addr.type || 'Address'}</p>
                   {addr.isDefault && (
-                    <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">
+                    <span className="px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded-full">
                       Default
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-600 leading-relaxed">
                   {addr.address}<br />
                   {addr.addressLine2}<br />
                   {addr.city}, {addr.state} {addr.pincode}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-4">
               {!addr.isDefault && (
                 <button 
                   onClick={() => onSetDefault(addr.id)}
-                  className="px-3 py-1 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                  className="px-3 py-1 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
                 >
                   Set Default
                 </button>
               )}
               <button 
                 onClick={() => onDelete(addr.id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
               >
                 <FiTrash2 className="w-5 h-5" />
               </button>
@@ -543,7 +558,7 @@ const AddressesModal = ({ addresses, onClose, onDelete, onSetDefault, onAdd }) =
       ))}
       <button 
         onClick={onAdd}
-        className="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-amber-500 hover:text-amber-600 transition-colors flex items-center justify-center gap-2 font-semibold"
+        className="w-full py-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center gap-2 font-semibold text-sm"
       >
         <FiPlus className="w-5 h-5" /> Add New Address
       </button>
@@ -558,7 +573,7 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
         <label className="block text-sm font-semibold text-slate-700 mb-2">Address Type</label>
         <select 
           name="type"
-          className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+          className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
         >
           <option value="Home">Home</option>
           <option value="Work">Work</option>
@@ -572,7 +587,7 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
           type="text" 
           name="addressLine1"
           placeholder="House/Building No., Street"
-          className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+          className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
           required
         />
       </div>
@@ -583,7 +598,7 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
           type="text" 
           name="addressLine2"
           placeholder="Area, Landmark"
-          className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+          className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
         />
       </div>
 
@@ -593,8 +608,8 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
           <input 
             type="text" 
             name="city"
-            placeholder="Phagwara"
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+            placeholder="City"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             required
           />
         </div>
@@ -603,8 +618,8 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
           <input 
             type="text" 
             name="state"
-            placeholder="Punjab"
-            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+            placeholder="State"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             required
           />
         </div>
@@ -615,9 +630,9 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
         <input 
           type="text" 
           name="zip"
-          placeholder="144411"
+          placeholder="000000"
           maxLength="6"
-          className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none"
+          className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
           required
         />
       </div>
@@ -625,7 +640,7 @@ const AddAddressModal = ({ onClose, onSubmit }) => (
       <div className="flex gap-3 pt-4">
         <button 
           type="submit"
-          className="flex-1 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+          className="flex-1 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors"
         >
           Save Address
         </button>

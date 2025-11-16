@@ -42,7 +42,6 @@ router.get("/api/products", async (req, res) => {
       params.push(category);
     }
     if (search) {
-      // Escape % and _ for LIKE query
       const sanitizedSearch = search.replace(/[%_]/g, '\\$&');
       if (sanitizedSearch.length > 100) {
         return res.status(400).json({ success: false, message: "Search term too long" });

@@ -9,6 +9,12 @@ const VerifyOrderRoutes = require('./Controller/VerifyOrder.js');
 const DashboardRoutes = require('./Controller/dashboard.js');
 const ContactController = require('./Controller/Contact.js');
 const productRoutes = require('./Controller/ProductRoutes');
+const adminProductRoutes = require('./Controller/AdminProductRoutes'); 
+const adminAuth = require('./Middleware/adminAuth.js');
+const adminDataRoutes = require('./Controller/AdminDataRoutes');
+const uploadRoutes = require('./Controller/UploadRoutes');
+const { initializeCleanupJob } = require('./job/ImageCleanupJob');
+
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 5000;
 
@@ -27,6 +33,7 @@ const corsOptions = {
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -37,6 +44,7 @@ app.get('/', (req, res) => {
     });
 });
 
+
 app.use('/auth', authRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/status', VerifyOrderRoutes);
@@ -44,7 +52,11 @@ app.use('/stats', DashboardRoutes);
 app.use('/c', ContactController)
 app.use('/dynamic', productRoutes);
 
-// module.exports = app;
+app.use(adminAuth, adminProductRoutes);
+app.use(adminAuth, adminDataRoutes);
+app.use(adminAuth, uploadRoutes);
+
+initializeCleanupJob();
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

@@ -1,54 +1,66 @@
-import React, { useState } from 'react'; // <-- Added useState
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
-  FiStar, 
-  FiShoppingCart, 
-  FiHeart, 
-  FiShare2, 
-  FiMinus, 
-  FiPlus, 
-  FiTruck, 
-  FiShield, 
-  FiRefreshCw,
-  FiChevronRight,
-  FiUsers,    // <-- Added for Bulk Orders
-  FiCopy,     // <-- Added for Share Modal
-  FiX,        // <-- Added for Share Modal
-  FiMail
+  FiStar, FiShoppingCart, FiHeart, FiShare2, FiMinus, FiPlus, 
+  FiTruck, FiShield, FiRefreshCw, FiChevronRight, FiUsers, 
+  FiCopy, FiX, FiMail, FiLoader // <-- We use this
 } from 'react-icons/fi';
-import { 
-  FaWhatsapp, // <-- Added for Share Modal
-  FaFacebook, // <-- Added for Share Modal
-  FaTwitter   // <-- Added for Share Modal
-} from 'react-icons/fa';
+import { FaWhatsapp, FaFacebook, FaTwitter } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { getProductBySlug, getProductById } from '../data/products';
+import { getProductBySlug } from '../data/products';
 import { toast } from 'react-toastify';
 
-// --- Main Component ---
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // 'id' here is the slug, e.g., "aata-dry-fruit-pinni"
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  const product = getProductBySlug(id) || getProductById(parseInt(id));
-
-  // --- State ---
-  const [selectedVariant, setSelectedVariant] = useState(product?.variants?.[0]);
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // <-- Starts as true
+  
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // <-- NEW: State for Share Modal
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  // --- "Not Found" State ---
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setIsLoading(true);
+      const data = await getProductBySlug(id); 
+      
+      if (data) {
+        setProduct(data);
+        setSelectedVariant(data.variants?.[0]);
+      }
+            
+            setIsLoading(false); 
+    };
+
+    fetchProduct();
+  }, [id]); 
+
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white pt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <FiLoader className="w-16 h-16 text-amber-500 mx-auto animate-spin" />
+          <h2 className="text-2xl font-semibold mt-4">Loading Product...</h2>
+        </div>
+      </div>
+    );
+  }
+
+
   if (!product || !selectedVariant) {
     return (
       <div className="w-full bg-slate-50 pt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
           <h1 className="text-4xl font-bold font-serif text-slate-800 mb-4">Product Not Found</h1>
-          <p className="text-lg text-slate-600 mb-8">The product you're looking for doesn't exist or may have been removed.</p>
+          <p className="text-lg text-slate-600 mb-8">The product you're looking for doesn't exist.</p>
           <button 
             onClick={() => navigate('/products')} 
             className="inline-flex items-center justify-center gap-2 px-8 py-3 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all"
@@ -60,23 +72,26 @@ const ProductDetail = () => {
     );
   }
 
-  // --- Derived State & Variables ---
+
   const isWishlisted = isInWishlist(product.id);
   const currentStock = selectedVariant.stock || product.stock || 0;
   const hasDiscount = selectedVariant.originalPrice > selectedVariant.price;
   const discountPercentage = hasDiscount
     ? Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)
     : 0;
+  const productImages = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : ['/images/placeholder.jpg'];
 
-  // --- Event Handlers ---
   const handleAddToCart = () => {
     const productToAdd = {
       ...product,
+      id: product.id,
       price: selectedVariant.price,
       originalPrice: selectedVariant.originalPrice,
       variant: selectedVariant.id,
       variantName: selectedVariant.name,
-      image: product.images?.[0] || product.image || '/images/placeholder.jpg'
+      image: productImages[0] || '/images/placeholder.jpg'
     };
     
     addToCart(productToAdd, quantity);
@@ -118,14 +133,12 @@ const ProductDetail = () => {
           <span className="font-medium text-slate-700 truncate">{product.name}</span>
         </nav>
 
-        {/* --- Main Product Grid (Images + Info) --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           
-          {/* Column 1: Product Images */}
           <div className="flex flex-col gap-4">
             <div className="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden shadow-lg">
               <img 
-                src={product.images[selectedImage]} 
+                src={productImages[selectedImage] || '/images/placeholder.jpg'} 
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -137,7 +150,7 @@ const ProductDetail = () => {
             </div>
             
             <div className="grid grid-cols-5 gap-3">
-              {product.images.map((image, index) => (
+              {productImages.map((image, index) => (
                 <img
                   key={index}
                   src={image}
@@ -153,13 +166,11 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Column 2: Product Info */}
           <div className="flex flex-col gap-5">
-            {/* Header: Badges, Title, Rating */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                {product.isNew && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600">New</span>}
-                {product.isBestSeller && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-600">Best Seller</span>}
+                {product.isNew > 0 && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600">New</span>}
+                {product.isBestSeller > 0 && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-600">Best Seller</span>}
               </div>
               
               <h1 className="text-4xl font-bold font-serif text-slate-900 mb-3">
@@ -168,11 +179,10 @@ const ProductDetail = () => {
               
               <div className="flex items-center gap-2 text-sm">
                 <StarRating rating={product.rating} />
-                <span className="text-slate-500">({product.reviews} reviews)</span>
+                <span className="text-slate-500">({product.reviews || 0} reviews)</span>
               </div>
             </div>
 
-            {/* Variants */}
             <div>
               <h3 className="text-sm font-medium text-slate-800 mb-2">Select Size:</h3>
               <div className="flex flex-wrap gap-3">
@@ -186,7 +196,7 @@ const ProductDetail = () => {
                     }`}
                     onClick={() => {
                       setSelectedVariant(variant);
-                      setQuantity(1); // Reset quantity on variant change
+                      setQuantity(1); 
                     }}
                     aria-pressed={selectedVariant.id === variant.id}
                   >
@@ -208,7 +218,6 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {/* Quantity and Actions */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="flex items-center">
                 <button
@@ -228,16 +237,15 @@ const ProductDetail = () => {
                 </button>
               </div>
               <span className="text-sm font-medium text-green-600">
-                {currentStock} items in stock
+                {currentStock > 0 ? `${currentStock} items in stock` : 'Out of Stock'}
               </span>
             </div>
 
-            {/* CTAs: Add to Cart, Buy Now */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
                 className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all disabled:opacity-50" 
                 onClick={handleAddToCart}
-                disabled={currentStock <= 0 || quantity <= 0}
+                disabled={currentStock <= 0}
               >
                 <FiShoppingCart className="w-5 h-5" />
                 Add to Cart
@@ -245,13 +253,12 @@ const ProductDetail = () => {
               <button 
                 className="w-full flex items-center justify-center gap-3 px-6 py-3.5 font-semibold text-white bg-slate-800 rounded-lg shadow-md hover:bg-slate-900 transition-all disabled:opacity-50"
                 onClick={handleBuyNow} 
-                disabled={currentStock <= 0 || quantity <= 0}
+                disabled={currentStock <= 0}
               >
                 Buy Now
               </button>
             </div>
 
-            {/* Secondary Actions: Wishlist, Share */}
             <div className="flex items-center gap-4">
               <button 
                 className={`flex items-center gap-2 text-sm font-medium transition-colors ${
@@ -265,29 +272,26 @@ const ProductDetail = () => {
                 {isWishlisted ? 'Added to Wishlist' : 'Add to Wishlist'}
               </button>
               
-              {/* --- MODIFIED SHARE BUTTON --- */}
               <button 
                 className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition-colors"
-                onClick={() => setIsShareModalOpen(true)} // <-- Opens the modal
+                onClick={() => setIsShareModalOpen(true)}
               >
                 <FiShare2 />
                 Share
               </button>
             </div>
             
-            {/* --- NEW: BULK ORDER SECTION --- */}
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-4">
+            <div className="p-4 bg-amber-50 border-2 border-amber-100 rounded-lg flex items-center gap-4">
               <FiUsers className="w-10 h-10 text-amber-600 flex-shrink-0" />
               <div>
                 <h4 className="font-semibold text-slate-800">Need a Custom or Bulk Order?</h4>
                 <p className="text-sm text-slate-600">
-                  We offer special pricing for events and bulk orders. 
+                  We offer special pricing for events and large orders. 
                   <Link to="/contact" className="font-medium text-amber-600 hover:underline ml-1">Contact us for details.</Link>
                 </p>
               </div>
             </div>
 
-            {/* Trust Badges */}
             <div className="pt-6 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-3 gap-4">
               <ProductFeature icon={<FiTruck />} text="Free shipping over ₹500" />
               <ProductFeature icon={<FiShield />} text="100% Natural Ingredients" />
@@ -297,63 +301,74 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* --- Product Details Tabs (Full Width) --- */}
         <div className="mt-20">
-          {/* (Tab section is unchanged) */}
           <div className="flex border-b border-slate-200">
             <TabButton title="Description" activeTab={activeTab} onClick={setActiveTab} />
             <TabButton title="Ingredients" activeTab={activeTab} onClick={setActiveTab} />
             <TabButton title="Benefits" activeTab={activeTab} onClick={setActiveTab} />
             <TabButton title="Nutrition" activeTab={activeTab} onClick={setActiveTab} />
           </div>
+
           <div className="py-8 prose prose-slate max-w-none">
             {activeTab === 'description' && (
               <div>
                 <h3>Product Description</h3>
-                <p>{product.detailedDescription || product.description}</p>
+                <p>{product.detailedDescription || product.description || 'No description available.'}</p>
               </div>
             )}
+
             {activeTab === 'ingredients' && (
               <div>
                 <h3>Ingredients</h3>
-                <ul className="list-disc list-outside pl-5">
-                  {product.ingredients.map((ingredient, index) => (
-                    <li key={index}>{ingredient}</li>
-                  ))}
-                </ul>
+                {product.ingredients && product.ingredients.length > 0 ? (
+                  <ul className="list-disc list-outside pl-5">
+                    {product.ingredients.map((ingredient, index) => (
+                      <li key={index}>{ingredient}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No ingredients listed for this product.</p>
+                )}
               </div>
             )}
+
             {activeTab === 'benefits' && (
               <div>
                 <h3>Health Benefits</h3>
-                <ul className="list-disc list-outside pl-5">
-                  <li>Rich in essential vitamins and minerals</li>
-                  <li>Natural source of energy</li>
-                  <li>Supports heart health</li>
-                  <li>Boosts immune system</li>
-                  <li>No artificial preservatives</li>
-                </ul>
+                {product.benefits && product.benefits.length > 0 ? (
+                  <ul className="list-disc list-outside pl-5">
+                    {product.benefits.map((benefit, index) => (
+                      <li key={index}>{benefit}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No benefits listed for this product.</p>
+                )}
               </div>
             )}
+
             {activeTab === 'nutrition' && (
               <div>
                 <h3>Nutrition Facts (per 100g)</h3>
-                <div className="not-prose border border-slate-200 rounded-lg overflow-hidden">
-                  <div className="divide-y divide-slate-200">
-                    <NutritionItem label="Calories" value={product.nutritionalInfo.calories} />
-                    <NutritionItem label="Protein" value={product.nutritionalInfo.protein} />
-                    <NutritionItem label="Fat" value={product.nutritionalInfo.fat} />
-                    <NutritionItem label="Carbohydrates" value={product.nutritionalInfo.carbs} />
-                    <NutritionItem label="Fiber" value={product.nutritionalInfo.fiber} />
+                {product.nutritionalInfo ? (
+                  <div className="not-prose border border-slate-200 rounded-lg overflow-hidden">
+                    <div className="divide-y divide-slate-200">
+                      <NutritionItem label="Calories" value={product.nutritionalInfo?.calories} />
+                      <NutritionItem label="Protein" value={product.nutritionalInfo?.protein} />
+                      <NutritionItem label="Fat" value={product.nutritionalInfo?.fat} />
+                      <NutritionItem label="Carbohydrates" value={product.nutritionalInfo?.carbs} />
+                      <NutritionItem label="Fiber" value={product.nutritionalInfo?.fiber} />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <p>No nutritional information available.</p>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* --- NEW: SHARE MODAL --- */}
       {isShareModalOpen && (
         <ShareModal 
           productName={product.name} 
@@ -364,7 +379,8 @@ const ProductDetail = () => {
   );
 };
 
-// --- NEW: Share Modal Component ---
+
+
 const ShareModal = ({ productName, onClose }) => {
   const url = window.location.href;
   const text = `Check out this product from Swaad-E-Sehat: ${productName}`;
@@ -373,30 +389,10 @@ const ShareModal = ({ productName, onClose }) => {
   const encodedSubject = encodeURIComponent(`Check out: ${productName}`);
 
   const shareLinks = [
-    { 
-      name: 'WhatsApp', 
-      icon: FaWhatsapp, 
-      href: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`,
-      color: 'bg-green-500 hover:bg-green-600'
-    },
-    { 
-      name: 'Facebook', 
-      icon: FaFacebook, 
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      color: 'bg-blue-600 hover:bg-blue-700'
-    },
-    { 
-      name: 'Twitter', 
-      icon: FaTwitter, 
-      href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
-      color: 'bg-sky-500 hover:bg-sky-600'
-    },
-    { 
-      name: 'Email', 
-      icon: FiMail, 
-      href: `mailto:?subject=${encodedSubject}&body=${encodedText}%20${encodedUrl}`,
-      color: 'bg-slate-600 hover:bg-slate-700'
-    },
+    { name: 'WhatsApp', icon: FaWhatsapp, href: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`, color: 'bg-green-500 hover:bg-green-600' },
+    { name: 'Facebook', icon: FaFacebook, href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, color: 'bg-blue-600 hover:bg-blue-700' },
+    { name: 'Twitter', icon: FaTwitter, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`, color: 'bg-sky-500 hover:bg-sky-600' },
+    { name: 'Email', icon: FiMail, href: `mailto:?subject=${encodedSubject}&body=${encodedText}%20${encodedUrl}`, color: 'bg-slate-600 hover:bg-slate-700' },
   ];
 
   const handleCopyLink = () => {
@@ -411,11 +407,11 @@ const ShareModal = ({ productName, onClose }) => {
   return (
     <div 
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999] p-4"
-      onClick={onClose} // Close when clicking the overlay
+      onClick={onClose} 
     >
       <div 
         className="bg-white rounded-xl shadow-xl w-full max-w-md"
-        onClick={e => e.stopPropagation()} // Prevent modal from closing when clicking inside
+        onClick={e => e.stopPropagation()} 
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h3 className="text-xl font-bold text-slate-800">Share "{productName}"</h3>
@@ -465,17 +461,13 @@ const ShareModal = ({ productName, onClose }) => {
   );
 };
 
-
-// --- Helper Components ---
-// (These are unchanged)
-
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
     {[...Array(5)].map((_, i) => (
       <FiStar 
         key={i} 
         className={`w-5 h-5 ${
-          i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-slate-300'
+          i < Math.floor(rating || 0) ? 'text-yellow-400 fill-current' : 'text-slate-300'
         }`}
       />
     ))}
@@ -510,7 +502,7 @@ const TabButton = ({ title, activeTab, onClick }) => {
 const NutritionItem = ({ label, value }) => (
   <div className="px-4 py-3 flex justify-between items-center even:bg-slate-50">
     <span className="text-sm font-medium text-slate-800">{label}</span>
-    <span className="text-sm text-slate-600">{value}</span>
+    <span className="text-sm text-slate-600">{value || 'N/A'}</span>
   </div>
 );
 

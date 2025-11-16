@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { FiGrid, FiList, FiSearch, FiX } from 'react-icons/fi';
+import { FiGrid, FiList, FiSearch, FiX, FiLoader } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard';
 import { 
-  products, 
   sortOptions, 
-  sortProducts,
-  searchProducts
+  searchAndSortProducts 
 } from '../data/products';
 
 const ProductsPage = () => {
-  const [filteredProducts, setFilteredProducts] = useState(products);
-  const [sortBy, setSortBy] = useState('name-asc');
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [sortBy, setSortBy] = useState('default');
   const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const { addToCart } = useCart();
 
   useEffect(() => {
-    let result = [...products];
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const data = await searchAndSortProducts({ searchTerm, sortBy });
+      setProducts(data);
+      setIsLoading(false);
+    };
 
-    // Apply search
-    if (searchTerm.trim()) {
-      result = searchProducts(result, searchTerm);
-    }
-
-    // Apply sorting
-    result = sortProducts(result, sortBy);
-
-    setFilteredProducts(result);
-  }, [sortBy, searchTerm]);
+    fetchProducts();
+  }, [sortBy, searchTerm]); 
 
   const handleAddToCart = (product, quantity = 1) => {
-    addToCart(product, quantity);
+    
+    const defaultVariant = product.variants?.[0];
+    const productToAdd = {
+      ...product,
+      price: defaultVariant?.price || product.base_price,
+      originalPrice: defaultVariant?.originalPrice || product.base_price,
+      variant: defaultVariant?.id || 'default',
+      variantName: defaultVariant?.name || 'Default',
+      image: product.images?.[0] || '/images/placeholder.jpg'
+    };
+    addToCart(productToAdd, quantity);
   };
 
   const handleSearch = (e) => {
@@ -43,7 +50,7 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="w-full bg-slate-50 pt-20"> {/* pt-20 offsets the fixed header */}
+    <div className="w-full bg-slate-50 pt-20"> 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         
         {/* Page Header */}
@@ -56,10 +63,8 @@ const ProductsPage = () => {
           </p>
         </div>
 
-        {/* Controls Section */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 p-4 bg-white rounded-lg shadow-sm">
           
-          {/* Search */}
           <div className="relative w-full md:w-auto">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
@@ -80,9 +85,7 @@ const ProductsPage = () => {
             )}
           </div>
 
-          {/* Sort & View Controls */}
           <div className="flex items-center gap-4">
-            {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
               <label htmlFor="sort" className="text-sm font-medium text-slate-600 hidden sm:block">
                 Sort by:
@@ -101,7 +104,6 @@ const ProductsPage = () => {
               </select>
             </div>
 
-            {/* View Mode Toggle */}
             <div className="flex items-center rounded-lg bg-slate-100 p-1">
               <button
                 className={`p-2 rounded-md transition-colors ${
@@ -129,15 +131,19 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        {/* Products Grid / List */}
         <div className="products-section">
           <div className="mb-6 border-b border-slate-200 pb-4">
             <p className="text-sm text-slate-500">
-              Showing {filteredProducts.length} of {products.length} products
+              Showing {products.length} products
             </p>
           </div>
           
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <FiLoader className="w-12 h-12 text-amber-500 animate-spin" />
+              <h3 className="text-2xl font-semibold text-slate-800 mt-4">Loading Products...</h3>
+            </div>
+          ) : products.length > 0 ? (
             <div className={`
               transition-all duration-300
               ${viewMode === 'grid'
@@ -145,12 +151,12 @@ const ProductsPage = () => {
                 : 'flex flex-col gap-6'
               }
             `}>
-              {filteredProducts.map(product => (
+              {products.map(product => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   onAddToCart={handleAddToCart}
-                  viewMode={viewMode} // Pass the viewMode prop
+                  viewMode={viewMode}
                 />
               ))}
             </div>

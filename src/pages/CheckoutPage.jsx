@@ -9,7 +9,7 @@ import {
   FiLock,
   FiArrowLeft,
   FiTruck,
-  FiRefreshCw // Added for loading
+  FiRefreshCw 
 } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
@@ -32,18 +32,15 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // --- NEW: State for Saved Addresses & Loading ---
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedAddressKey, setSelectedAddressKey] = useState('new'); // 'new' or array index
 
-  // --- Calculations ---
   const calculateSubtotal = () => items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const subtotal = calculateSubtotal();
   const tax = subtotal * 0.18;
-  const total = subtotal + tax;
+  const total = subtotal ;
 
-  // --- Effects ---
   useEffect(() => {
     if (items.length === 0 && !isProcessing && !isPolling) {
       toast.error("Your cart is empty. Redirecting...");
@@ -51,7 +48,6 @@ const CheckoutPage = () => {
     }
   }, [items, navigate, isProcessing]);
 
-  // --- NEW: Effect to fetch user data and addresses ---
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -59,12 +55,10 @@ const CheckoutPage = () => {
         if (response.data.success) {
           const { user, addresses } = response.data.data;
 
-          // Split the full name into first and last
           const nameParts = user.name.split(' ');
           const firstName = nameParts[0] || '';
           const lastName = nameParts.slice(1).join(' ') || '';
 
-          // Auto-fill the form with user's personal info
           setFormData(prev => ({
             ...prev,
             firstName: firstName,
@@ -79,7 +73,6 @@ const CheckoutPage = () => {
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
-        // Don't redirect, just let them fill the form
         toast.warn("Could not load your saved data. Please enter it manually.");
       } finally {
         setIsLoadingData(false);
@@ -87,9 +80,8 @@ const CheckoutPage = () => {
     };
     
     fetchUserData();
-  }, []); // Runs once on page load
+  }, []); 
 
-  // --- Form Handling ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -98,13 +90,11 @@ const CheckoutPage = () => {
     }
   };
 
-  // --- NEW: Handler for the address dropdown ---
   const handleAddressChange = (e) => {
     const key = e.target.value;
     setSelectedAddressKey(key);
 
     if (key === 'new') {
-      // Clear the form fields to allow new entry
       setFormData(prev => ({
         ...prev,
         address: '',
@@ -113,7 +103,6 @@ const CheckoutPage = () => {
         pincode: ''
       }));
     } else {
-      // Pre-fill the form with the selected address
       const addressIndex = parseInt(key);
       const selectedAddr = savedAddresses[addressIndex];
       if (selectedAddr) {
@@ -124,7 +113,6 @@ const CheckoutPage = () => {
           state: selectedAddr.state,
           pincode: selectedAddr.pincode
         }));
-        // Clear any validation errors on these fields
         setErrors(prev => ({
           ...prev,
           address: '',
@@ -137,7 +125,6 @@ const CheckoutPage = () => {
   };
 
   const validateForm = () => {
-    // (This function is unchanged)
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -156,7 +143,6 @@ const CheckoutPage = () => {
   };
   
   const getUserIdFromToken = () => {
-    // (This function is unchanged)
     try {
       const userJSON = localStorage.getItem('authToken'); 
       if (!userJSON) throw new Error('No user data found');
@@ -170,7 +156,6 @@ const CheckoutPage = () => {
   };
 
   const sendOrderConfirmation = (orderData) => {
-    // (This function is unchanged)
     try {
       console.log('Simulating order confirmation:', orderData);
       const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -181,7 +166,6 @@ const CheckoutPage = () => {
     }
   };
 
-  // --- Payment Handler (Unchanged) ---
   const handlePayment = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -201,7 +185,7 @@ const CheckoutPage = () => {
     const orderPayload = {
       user_id: userId,
       amount: total,
-      customerInfo: formData, // This now contains the auto-filled or edited data
+      customerInfo: formData, 
       items: items,
       paymentMethod: formData.paymentMethod === 'cod' ? 'COD' : 'Online'
     };
@@ -246,7 +230,6 @@ const CheckoutPage = () => {
     }
   };
 
-  // --- State and Effect for Polling (Unchanged) ---
   const [isPolling, setIsPolling] = useState(false);
   const [pollingOrderId, setPollingOrderId] = useState(null);
 
@@ -290,7 +273,6 @@ const CheckoutPage = () => {
   }, [isPolling, pollingOrderId, navigate, clearCart]);
 
 
-  // --- Dynamic Button Text (Unchanged) ---
   let paymentButtonContent = null;
   if (isProcessing) {
     paymentButtonContent = (
@@ -318,7 +300,6 @@ const CheckoutPage = () => {
     );
   }
 
-  // --- JSX ---
   return (
     <div className="w-full bg-slate-50 pt-20">
       
@@ -345,7 +326,6 @@ const CheckoutPage = () => {
           
           <div className="lg:col-span-2 space-y-8">
             
-            {/* --- MODIFIED: Personal Info --- */}
             <FormSection title="Personal Information" icon={<FiUser />}>
               {isLoadingData && (
                 <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg text-slate-500">
@@ -395,7 +375,6 @@ const CheckoutPage = () => {
               </div>
             </FormSection>
 
-            {/* --- MODIFIED: Shipping Address --- */}
             <FormSection title="Shipping Address" icon={<FiMapPin />}>
               <FormGroup>
                 <label htmlFor="savedAddress" className="form-label">Saved Addresses</label>
@@ -580,10 +559,10 @@ const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButton
         <span>Subtotal</span>
         <span className="font-medium text-slate-800">₹{subtotal.toFixed(2)}</span>
       </div>
-      <div className="flex justify-between items-center text-slate-600">
+      {/* <div className="flex justify-between items-center text-slate-600">
         <span>GST (18%)</span>
         <span className="font-medium text-slate-800">₹{tax.toFixed(2)}</span>
-      </div>
+      </div> */}
       <div className="flex justify-between items-center text-slate-600">
         <span>Shipping</span>
         <span className="font-medium text-green-600">FREE</span>

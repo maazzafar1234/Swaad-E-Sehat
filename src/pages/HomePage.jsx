@@ -1,21 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // <-- IMPORT useState & useEffect
 import { Link } from 'react-router-dom';
-import { FiArrowRight, FiStar, FiTruck, FiShield, FiHeart } from 'react-icons/fi';
-import { FaWhatsapp, FaQuoteLeft } from 'react-icons/fa'; // Added new icons
+import { 
+  FiArrowRight, 
+  FiStar, 
+  FiTruck, 
+  FiShield, 
+  FiHeart, 
+  FiLoader
+} from 'react-icons/fi';
+import { FaWhatsapp, FaQuoteLeft } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
-import ProductCard from '../components/ProductCard'; // Assuming this component is also styled with Tailwind
-import { getFeaturedProducts } from '../data/products';
+import ProductCard from '../components/ProductCard';
+import { getFeaturedProducts } from '../data/products'; 
 
 const HomePage = () => {
   const { addToCart } = useCart();
-  const featuredProducts = getFeaturedProducts();
+  
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const data = await getFeaturedProducts();
+      setFeaturedProducts(data);
+      setIsLoading(false);
+    };
+
+    fetchProducts();
+  }, []); 
   const handleAddToCart = (product, quantity = 1) => {
-    addToCart(product, quantity);
+    const productPrice = product.base_price; 
+    const originalPrice = product.base_original_price || productPrice;
+
+    const productToAdd = {
+      ...product,
+      id: product.id,
+      price: productPrice,
+      originalPrice: originalPrice,
+      variant: 'default',
+      variantName: 'Default',
+      image: product.images?.[0] || '/images/placeholder.jpg' 
+    };
+    
+    addToCart(productToAdd, quantity);
   };
 
   const handleWhatsAppContact = () => {
-    const phoneNumber = '8849978818'; // Updated WhatsApp number
+    const phoneNumber = '8849978818';
     const message = 'Hi! I\'m interested in your natural sweets and dry fruits. Can you help me with more information?';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -35,7 +67,7 @@ const HomePage = () => {
               </h1>
               <p className="text-lg text-slate-600 max-w-lg text-balance">
                 Experience the authentic taste of traditional homemade sweets and premium dry fruits. 
-                Made with 200% natural ingredients and age-old recipes.
+                Made with 100% natural ingredients and age-old recipes.
               </p>
               <div className="flex gap-4 flex-wrap justify-center lg:justify-start">
                 <Link 
@@ -61,7 +93,6 @@ const HomePage = () => {
                   alt="Premium Natural Sweets & Dry Fruits"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {/* --- The Mirror Effect --- */}
                 <div 
                   className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-slate-50 via-slate-50/70 to-transparent"
                   style={{ transform: 'scaleY(-1)', transformOrigin: 'bottom', WebkitBoxReflect: 'below -1px linear-gradient(to bottom, transparent 60%, rgba(255,255,255,0.5))' }}
@@ -81,15 +112,28 @@ const HomePage = () => {
               Our best-selling natural sweets and dry fruit products
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            ))}
-          </div>
+          
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FiLoader className="w-12 h-12 text-amber-500 animate-spin" />
+              <h3 className="text-xl font-semibold text-slate-800 mt-4">Loading Featured Products...</h3>
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-semibold text-slate-800">No featured products available right now.</h3>
+            </div>
+          )}
+
           <div className="text-center mt-12">
             <Link 
               to="/products" 
@@ -101,7 +145,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section (Unchanged) */}
       <section className="py-20 bg-slate-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -129,11 +173,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* New Launch Section */}
+      {/* New Launch Section (Unchanged) */}
       <section className="py-20 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* New Launch Image with Mirror Effect */}
             <div className="flex justify-center order-1 lg:order-2">
               <div className="relative group">
                 <img 
@@ -141,7 +184,6 @@ const HomePage = () => {
                   alt="Dry Fruit Khajur Pak"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {/* --- The Mirror Effect --- */}
                 <div 
                   className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white via-white/70 to-transparent"
                   style={{ transform: 'scaleY(-1)', transformOrigin: 'bottom', WebkitBoxReflect: 'below -1px linear-gradient(to bottom, transparent 60%, rgba(255,255,255,0.5))' }}
@@ -149,7 +191,6 @@ const HomePage = () => {
               </div>
             </div>
             
-            {/* New Launch Text */}
             <div className="flex flex-col gap-5 order-2 lg:order-1">
               <span className="inline-block bg-pink-100 text-pink-700 font-semibold px-4 py-1 rounded-full self-start">
                 New Launch
@@ -175,7 +216,7 @@ const HomePage = () => {
               </ul>
               <div className="mt-4">
                 <Link 
-                  to="/product/2" 
+                  to="/product/dry-fruit-laddu" // Changed slug to be more accurate
                   className="inline-flex items-center justify-center gap-2 px-8 py-3 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   Try Now <FiArrowRight className="w-5 h-5" />
@@ -186,7 +227,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
       <section className="py-20 bg-slate-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -218,7 +258,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 bg-amber-500">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -246,7 +285,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* WhatsApp Floating Button */}
       <button 
         onClick={handleWhatsAppContact}
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-3 px-5 py-3 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 hover:scale-105 transition-all duration-300 transform"
@@ -259,7 +297,6 @@ const HomePage = () => {
   );
 };
 
-// Helper component for Features
 const FeatureCard = ({ icon, title, description }) => (
   <div className="bg-white p-6 rounded-xl shadow-lg text-center flex flex-col items-center hover:shadow-xl transition-shadow duration-300">
     <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-full bg-amber-100 text-amber-500 mb-4">
@@ -270,7 +307,6 @@ const FeatureCard = ({ icon, title, description }) => (
   </div>
 );
 
-// Helper component for Testimonials
 const TestimonialCard = ({ quote, author, location, initials }) => (
   <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col h-full">
     <div className="relative mb-6 flex-grow">

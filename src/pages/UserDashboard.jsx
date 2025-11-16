@@ -17,7 +17,6 @@ import {
 import { toast } from 'react-toastify';
 import ClientApiInstance from '../api/axiosIntercepter';
 
-// --- Main Dashboard Component ---
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -30,11 +29,9 @@ const UserDashboard = () => {
 
   const navigate = useNavigate();
 
-  // --- Data Fetching ---
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Use your API endpoint
         const response = await ClientApiInstance.get("/stats/api/dashboard");
         
         if (response.data && response.data.success) {
@@ -48,10 +45,10 @@ const UserDashboard = () => {
       } catch (err) {
         console.error("Dashboard API Error:", err);
         toast.error("An error occurred while fetching your data.");
-        // If auth fails, redirect to login
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          localStorage.removeItem('authToken');
           navigate('/account');
-        } //redict to login
+        }
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +57,6 @@ const UserDashboard = () => {
     fetchDashboardData();
   }, [navigate]);
 
-  // --- Event Handlers ---
   const openModal = (modalType, data = null) => {
     setActiveModal(modalType);
     if (modalType === 'orderDetail') setSelectedOrder(data);
@@ -73,14 +69,12 @@ const UserDashboard = () => {
   };
 
   const handleLogout = () => {
-    // ⚠️ Ensure these are your correct localStorage keys
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     toast.success("You have been logged out.");
-    navigate('/login'); // Redirect to login page
+    navigate('/account'); 
   };
 
-  // Profile
   const handleProfileUpdate = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -91,50 +85,43 @@ const UserDashboard = () => {
       phone: formData.get('phone'),
     };
     
-    // TODO: Add an API call here to update the user in the backend
-    // e.g., ClientApiInstance.put("/api/profile/update", updatedUser)
     
     setUser(updatedUser);
     toast.success("Profile updated!");
     setEditingProfile(false);
   };
 
-  // Addresses
   const handleAddAddress = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const newAddress = {
-      id: `addr${addresses.length + 1}`, // Temporary ID
+      id: `addr${addresses.length + 1}`, 
       type: formData.get('type'),
-      address: formData.get('addressLine1'), // Match your API response
+      address: formData.get('addressLine1'),
       addressLine1: formData.get('addressLine1'),
       addressLine2: formData.get('addressLine2'),
       city: formData.get('city'),
       state: formData.get('state'),
-      pincode: formData.get('zip'), // Match your API response
+      pincode: formData.get('zip'),
       isDefault: addresses.length === 0,
     };
 
-    // TODO: Add API call to save new address
     
     setAddresses([...addresses, newAddress]);
     closeModal();
   };
 
   const handleDeleteAddress = (id) => {
-    // TODO: Add API call to delete address
     setAddresses(addresses.filter(addr => addr.id !== id));
   };
 
   const handleSetDefaultAddress = (id) => {
-    // TODO: Add API call to set default address
     setAddresses(addresses.map(addr => ({
       ...addr,
       isDefault: addr.id === id
     })));
   };
   
-  // --- Helper Functions ---
   const getStatusColor = (status) => {
     const colors = {
       'Delivered': 'bg-green-100 text-green-700',
@@ -148,17 +135,15 @@ const UserDashboard = () => {
     return colors[status] || 'bg-gray-100 text-gray-700';
   };
 
-  // --- Loading State ---
   if (isLoading) {
     return <DashboardLoadingSkeleton />;
   }
 
-  const recentOrder = orders?.[0]; // Get the first order
+  const recentOrder = orders?.[0]; 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 p-4 md:p-8 pt-24">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-start justify-between">
             <div>
@@ -179,7 +164,6 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <QuickLink 
             onClick={() => openModal('orders')} 
@@ -201,7 +185,6 @@ const UserDashboard = () => {
           />
         </div>
 
-        {/* Recent Order Summary */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
           <h3 className="text-2xl font-bold text-slate-800 mb-6">Recent Order</h3>
           {recentOrder ? (
@@ -228,7 +211,6 @@ const UserDashboard = () => {
           )}
         </div>
 
-        {/* Addresses Preview */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-slate-800">Saved Addresses</h3>
@@ -259,12 +241,10 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* --- Modals --- */}
       {activeModal === 'orders' && <OrdersModal orders={orders} onClose={closeModal} onViewOrder={(order) => openModal('orderDetail', order)} getStatusColor={getStatusColor} />}
       {activeModal === 'orderDetail' && selectedOrder && <OrderDetailModal order={selectedOrder} onClose={closeModal} getStatusColor={getStatusColor} />}
       {activeModal === 'profile' && user && <ProfileModal user={user} onClose={closeModal} editing={editingProfile} setEditing={setEditingProfile} onSubmit={handleProfileUpdate} />}
       
-      {/* Address Modals (Unchanged) */}
       {activeModal === 'addresses' && (
         <AddressesModal 
           addresses={addresses} 
@@ -279,27 +259,22 @@ const UserDashboard = () => {
   );
 };
 
-// --- Loading Skeleton Component ---
 const DashboardLoadingSkeleton = () => (
   <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 p-4 md:p-8 pt-24 animate-pulse">
     <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
       <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <div className="h-10 bg-slate-200 rounded-lg w-3/4 mb-4"></div>
         <div className="h-4 bg-slate-200 rounded-lg w-1/2"></div>
       </div>
-      {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
         <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
         <div className="bg-white p-6 rounded-2xl shadow-lg h-32"></div>
       </div>
-      {/* Recent Order */}
       <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <div className="h-8 bg-slate-200 rounded-lg w-1/4 mb-6"></div>
         <div className="h-24 bg-slate-100 rounded-xl"></div>
       </div>
-      {/* Addresses */}
       <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <div className="h-8 bg-slate-200 rounded-lg w-1/3 mb-6"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -312,7 +287,6 @@ const DashboardLoadingSkeleton = () => (
 );
 
 
-// --- Helper Components (Copied from your file) ---
 
 const QuickLink = ({ onClick, icon, title, subtitle }) => (
   <button 
@@ -380,7 +354,6 @@ const OrdersModal = ({ orders, onClose, onViewOrder, getStatusColor }) => (
   </Modal>
 );
 
-// OrderDetailModal (Removed payment section)
 const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
   <Modal onClose={onClose} title={`Order ${order.id}`}>
     <div className="space-y-6">
@@ -394,11 +367,9 @@ const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
         </span>
       </div>
 
-      {/* Note: This section would require another API call to fetch items for an order */}
       <div>
         <h4 className="font-bold text-lg text-slate-800 mb-3">Order Items</h4>
         <div className="p-4 border border-slate-200 rounded-lg text-slate-500">
-          {/* (To show item details, you'll need to fetch from `order_items` where `order_id` = {order.id}) */}
         </div>
       </div>
 
@@ -408,7 +379,6 @@ const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
             <span className="text-slate-600">Subtotal</span>
             <span className="font-semibold">₹{order.subtotal || order.total_amount}</span>
           </div>
-          {/* Add tax/shipping if they are in your 'orders' table */}
           <div className="flex justify-between pt-2 border-t border-slate-200">
             <span className="text-lg font-bold text-slate-800">Total</span>
             <span className="text-lg font-bold text-amber-600">₹{order.total_amount}</span>
@@ -438,7 +408,6 @@ const OrderDetailModal = ({ order, onClose, getStatusColor }) => (
   </Modal>
 );
 
-// Profile Modal (Updated to use 'mobile' and 'created_at')
 const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
   <Modal onClose={onClose} title="My Profile" size="max-w-2xl">
     {!editing ? (
@@ -529,7 +498,6 @@ const ProfileModal = ({ user, onClose, editing, setEditing, onSubmit }) => (
   </Modal>
 );
 
-// --- All Address Modals (Unchanged) ---
 const AddressesModal = ({ addresses, onClose, onDelete, onSetDefault, onAdd }) => (
   <Modal onClose={onClose} title="Saved Addresses">
     <div className="space-y-4">

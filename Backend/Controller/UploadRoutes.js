@@ -54,7 +54,7 @@ router.post(
       const outputPath = path.join("public/uploads", filename);
 
       // Ensure uploads directory exists
-      await fs.mkdir("public/uploads", { recursive: true });
+      await fs.mkdir("Public/uploads", { recursive: true });
 
       // Compress and convert image to WebP format
       await sharp(req.file.buffer)

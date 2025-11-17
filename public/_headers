@@ -1,0 +1,32 @@
+# Cache headers for static assets
+
+# JavaScript and CSS - long-term caching with hash-based filenames
+/static/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/static/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Media files
+/static/media/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonts - long-term caching
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images - medium-term caching
+/images/*
+  Cache-Control: public, max-age=2592000
+
+# Root HTML - no caching for index.html
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Service Worker
+/service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Manifest
+/manifest.json
+  Cache-Control: public, max-age=86400

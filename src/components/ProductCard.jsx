@@ -109,6 +109,8 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
             <img 
               src={productImages[0] || '/images/placeholder.jpg'}
               alt={product.name}
+              width="600"
+              height={viewMode === 'grid' ? '450' : '600'}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
@@ -319,6 +321,8 @@ const QuickViewModal = ({ productSlug, onClose }) => {
             <img 
               src={product?.images?.[0] || '/images/placeholder.jpg'} 
               alt={product?.name}
+              width="800"
+              height="800"
               loading="lazy"
               className="w-full h-full object-cover" 
             />

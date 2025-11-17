@@ -1,36 +1,40 @@
-import React , { Suspense } from 'react';
+import React , { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import MainLayout from './components/MainLayout'; 
+import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminLayout from './pages/admin/AdminLayout';
 
+// Eagerly load critical components
 import HomePage from './pages/HomePage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetail from './pages/ProductDetail';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import OrderConfirmation from './pages/OrderConfirmation';
-import WishlistPage from './pages/WishlistPage';
-import TermAnsConditions from './pages/TermAnsConditions';
-import Shippingpage from './pages/Shipping.jsx';
-import ReturnAndRefund from './pages/ReturnAndRefund.jsx';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import FAQ from './pages/Faqs';
-import NotFound from "./pages/404";
 
-import Account from './pages/account';
-import UserDashboard from './pages/UserDashboard';
+// Lazy load non-critical pages
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const TermAnsConditions = lazy(() => import('./pages/TermAnsConditions'));
+const Shippingpage = lazy(() => import('./pages/Shipping.jsx'));
+const ReturnAndRefund = lazy(() => import('./pages/ReturnAndRefund.jsx'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const FAQ = lazy(() => import('./pages/Faqs'));
+const NotFound = lazy(() => import("./pages/404"));
 
-import AdminProductList from './pages/admin/AdminProductList';
-import AdminProductForm from './pages/admin/AdminProductForm';
-import AdminOrderList from './pages/admin/AdminOrderList';
-import AdminUserList from './pages/admin/AdminUserList';     
-import AdminOrderDetail from './pages/admin/AdminOrderDetail'; 
-import AdminSettings from './pages/admin/AdminSettingPage'; 
+const Account = lazy(() => import('./pages/account'));
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+
+// Lazy load admin components
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminProductList = lazy(() => import('./pages/admin/AdminProductList'));
+const AdminProductForm = lazy(() => import('./pages/admin/AdminProductForm'));
+const AdminOrderList = lazy(() => import('./pages/admin/AdminOrderList'));
+const AdminUserList = lazy(() => import('./pages/admin/AdminUserList'));
+const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettingPage'));
 
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';

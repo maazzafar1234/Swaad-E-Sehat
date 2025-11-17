@@ -56,16 +56,13 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Google Fonts - Optimized -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- DNS Prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://ik.imagekit.io" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     
-    <!-- Preload critical assets -->
-    <link rel="preload" as="style" href="%PUBLIC_URL%/static/css/main.css" />
+    <!-- Preload critical fonts -->
+    <link rel="preload" as="style" href="%PUBLIC_URL%/fonts.css" />
+    <link rel="stylesheet" href="%PUBLIC_URL%/fonts.css" />
 
     <title>Swaad-E-Sehat | Natural Homemade Sweets & Dry Fruits</title>
   </head>

@@ -140,6 +140,9 @@ const ProductDetail = () => {
               <img 
                 src={productImages[selectedImage] || '/images/placeholder.jpg'} 
                 alt={product.name}
+                width="800"
+                height="800"
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
               {hasDiscount && (
@@ -155,6 +158,9 @@ const ProductDetail = () => {
                   key={index}
                   src={image}
                   alt={`${product.name} ${index + 1}`}
+                  width="150"
+                  height="150"
+                  loading="lazy"
                   className={`w-full aspect-square rounded-lg object-cover cursor-pointer transition-all ${
                     selectedImage === index
                       ? 'ring-2 ring-amber-500 ring-offset-2'

@@ -50,7 +50,7 @@ const Header = () => {
             onClick={closeMenu}
           >
             <img 
-              src="/images/sticker.jpg" 
+              src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/sticker.jpg" 
               alt="Swaad-E-Sehat logo - Natural homemade sweets and dry fruits" 
               className="w-11 h-11 object-contain rounded-full"
               loading="eager"

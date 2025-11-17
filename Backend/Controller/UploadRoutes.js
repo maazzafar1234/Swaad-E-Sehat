@@ -1,40 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const path = require("path");
 const sharp = require("sharp");
-const fs = require("fs").promises;
 const rateLimit = require("express-rate-limit");
-const adminAuth = require("../Middleware/adminAuth");
+const ImageKit = require("imagekit");
 
-// Rate limiter for upload endpoint
-const uploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 requests per windowMs
-  message: "Too many upload requests, please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL,
 });
 
-// Use memory storage for multer to process images before saving
-const storage = multer.memoryStorage();
-
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/webp"
-  ) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only .jpeg, .png, or .webp files are allowed!"), false);
-  }
-};
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: "Too many uploads, try again later.",
+});
 
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 1024 * 1024 * 15 }, // Increased to 15MB to handle large uploads before compression
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 1024 * 1024 * 15 },
+  fileFilter(req, file, cb) {
+    if (
+      file.mimetype === "image/jpeg" ||
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/webp"
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"));
+    }
+  },
 });
 
 router.post(
@@ -44,41 +40,46 @@ router.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return res
-          .status(400)
-          .json({ success: false, message: "No file was uploaded." });
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
       }
 
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const filename = `image-${uniqueSuffix}.webp`;
-      const outputPath = path.join("Public/uploads", filename);
-
-      // Ensure uploads directory exists
-      await fs.mkdir("Public/uploads", { recursive: true });
-
-      // Compress and convert image to WebP format
-      await sharp(req.file.buffer)
-        .resize(1600, 1600, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
+      const optimizedImageBuffer = await sharp(req.file.buffer)
+        .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
         .webp({ quality: 85 })
-        .toFile(outputPath);
+        .toBuffer();
 
-      const relativePath = `/uploads/${filename}`.replace(/\\/g, "/");
-      const fullUrl = `${process.env.API_BASE_URL}${relativePath}`;
+      imagekit.upload(
+        {
+          file: optimizedImageBuffer,
+          fileName: Date.now() + ".webp",
+          folder: "admin_uploads",
+        },
+        (err, result) => {
+          if (err) {
+            console.error("ImageKit Error:", err);
+            return res.status(500).json({
+              success: false,
+              message: "Image upload failed",
+              error: err.message,
+            });
+          }
 
-      res.json({
-        success: true,
-        message: "File uploaded and optimized successfully",
-        filePath: fullUrl,
-      });
+          return res.json({
+            success: true,
+            message: "Image uploaded successfully",
+            filePath: result.url,
+          });
+        }
+      );
     } catch (error) {
-      console.error("Error processing image:", error);
+      console.error("Upload Error:", error);
       res.status(500).json({
         success: false,
-        message: "Error processing image",
-        error: error.message
+        message: "Server error",
+        error: error.message,
       });
     }
   }

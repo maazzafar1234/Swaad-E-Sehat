@@ -77,9 +77,9 @@ app.use("/stats", DashboardRoutes);
 app.use("/c", ContactController);
 app.use("/dynamic", productRoutes);
 
-app.use(adminAuth, uploadRoutes);
 app.use(adminAuth, adminProductRoutes);
 app.use(adminAuth, adminDataRoutes);
+app.use(adminAuth, uploadRoutes);
 
 // initializeCleanupJob();
 

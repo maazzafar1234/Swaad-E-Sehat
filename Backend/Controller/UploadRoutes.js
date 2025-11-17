@@ -4,6 +4,7 @@ const multer = require("multer");
 const sharp = require("sharp");
 const rateLimit = require("express-rate-limit");
 const ImageKit = require("imagekit");
+const { v4: uuidv4 } = require("uuid");
 
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -54,7 +55,7 @@ router.post(
       imagekit.upload(
         {
           file: optimizedImageBuffer,
-          fileName: Date.now() + ".webp",
+          fileName: `${uuidv4()}.webp`,
           folder: "admin_uploads",
         },
         (err, result) => {

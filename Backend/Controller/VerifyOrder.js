@@ -86,6 +86,15 @@ router.get('/verify-order/:orderId', userDashAuth, async (req, res) => {
     );
 
     if (newStatus === 'paid') {
+      // Decrease stock for paid orders
+      try {
+        await decreaseStockForOrder(orderId);
+        console.log(`✅ Stock decreased for order ${orderId}`);
+      } catch (stockError) {
+        console.error(`❌ Stock decrease failed for order ${orderId}:`, stockError.message);
+        // Continue with email sending even if stock update fails
+      }
+
       try {
         await sendOrderConfirmationEmails(orderId);
         console.log(`✅ Confirmation emails sent for order ${orderId}`);
@@ -206,5 +215,93 @@ function getStatusMessage(status) {
   };
   return messages[status] || 'Status updated';
 }
+
+async function decreaseStockForOrder(orderId) {
+  const [orderItems] = await pool.query(
+    `SELECT product_id, variant, quantity 
+     FROM order_items 
+     WHERE order_id = ?`,
+    [orderId]
+  );
+
+  for (const item of orderItems) {
+    await pool.query(
+      `UPDATE product_variants 
+       SET stock = stock - ? 
+       WHERE product_id = ? AND (variant_id_str = ? OR name = ?)`,
+      [item.quantity, item.product_id, item.variant, item.variant]
+    );
+  }
+}
+
+router.get('/payment/callback', async (req, res) => {
+  const { order, source, timestamp } = req.query;
+  
+  try {
+    if (!order) {
+      return res.redirect(`${process.env.FRONTEND_URL}/order-confirmation?error=missing_order`);
+    }
+
+    // Verify the payment status with the gateway
+    const devRes = await axios.post(
+      "https://connect.devcraftor.in/api/v2/partner/order/status",
+      {
+        token: process.env.DEVCRAFTER_TOKEN,
+        orderId: order
+      },
+      {
+        headers: {
+          "X-API-Key": process.env.DEVCRAFTER_KEY,
+          "X-API-Secret": process.env.DEVCRAFTER_SECRET,
+          "Content-Type": "application/json"
+        },
+        timeout: 10000
+      }
+    );
+
+    const parsedResponse = parseDevCrafterResponse(devRes.data);
+    const newStatus = mapPaymentStatus(parsedResponse.status);
+
+    // Update order status
+    await pool.query(
+      "UPDATE orders SET payment_status = ?, updated_at = NOW() WHERE id = ?",
+      [newStatus, order]
+    );
+
+    if (newStatus === 'paid') {
+      // Decrease stock for paid orders
+      try {
+        await decreaseStockForOrder(order);
+        console.log(`✅ Stock decreased for order ${order}`);
+      } catch (stockError) {
+        console.error(`❌ Stock decrease failed for order ${order}:`, stockError.message);
+      }
+
+      // Send confirmation emails
+      try {
+        await sendOrderConfirmationEmails(order);
+        console.log(`✅ Confirmation emails sent for order ${order}`);
+      } catch (emailError) {
+        console.error(`❌ Email failed for order ${order}:`, emailError.message);
+      }
+
+      // Redirect to success page
+      return res.redirect(`${process.env.FRONTEND_URL}/order-confirmation?orderId=${order}&status=success`);
+    } else if (newStatus === 'failed' || newStatus === 'cancelled') {
+      return res.redirect(`${process.env.FRONTEND_URL}/order-confirmation?orderId=${order}&status=failed`);
+    } else {
+      return res.redirect(`${process.env.FRONTEND_URL}/order-confirmation?orderId=${order}&status=pending`);
+    }
+
+  } catch (err) {
+    console.error("Payment callback error:", {
+      orderId: order,
+      error: err.message,
+      apiResponse: err.response?.data
+    });
+    
+    return res.redirect(`${process.env.FRONTEND_URL}/order-confirmation?error=verification_failed`);
+  }
+});
 
 module.exports = router;

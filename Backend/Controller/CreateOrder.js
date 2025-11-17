@@ -149,6 +149,7 @@ router.post("/api/orders/create", UserDashAuth, async (req, res) => {
         txnNote: "Swaad Purchase",
         cust_Mobile: customerInfo.phone,
         cust_Email: customerInfo.email,
+        callback_url: `${process.env.BASE_URL}/status/payment/callback?order=${orderId}&source=checkout&timestamp=${Date.now()}`
       }),
     });
 

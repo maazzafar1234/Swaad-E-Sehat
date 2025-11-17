@@ -24,7 +24,7 @@ const AboutPage = () => {
           <div className="story-image">
             
             <img 
-              src="/images/CHANA (2).JPG" 
+              src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/CHANA%20(2).JPG" 
               alt="Our homemade sweets" 
               className="rounded-xl shadow-2xl w-full h-auto object-cover"
             />
@@ -109,7 +109,7 @@ const AboutPage = () => {
             <div className="choose-image order-last lg:order-first">
               
               <img 
-                src="/images/CHANA DRYFRUIT PINNI.JPG" 
+                src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/CHANNA%20DRY%20FRUIT%20PINI.JPG" 
                 alt="Our premium dry fruit pinni" 
                 className="rounded-xl shadow-2xl w-full h-auto object-cover"
               />

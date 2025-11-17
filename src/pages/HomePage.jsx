@@ -91,7 +91,7 @@ const HomePage = () => {
             <div className="flex justify-center">
               <div className="relative group">
                 <img 
-                  src="/images/2J1A5029.JPG" 
+                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG" 
                   alt="Premium Natural Sweets & Dry Fruits"
                   fetchpriority="high"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
@@ -183,7 +183,7 @@ const HomePage = () => {
             <div className="flex justify-center order-1 lg:order-2">
               <div className="relative group">
                 <img 
-                  src="/images/MUSCLELADDU.jpg" 
+                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg" 
                   alt="Dry Fruit Khajur Pak"
                   loading="lazy"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"

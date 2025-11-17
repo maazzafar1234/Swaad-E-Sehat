@@ -26,7 +26,7 @@ const Footer = () => {
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-6">
               <img 
-                src="/images/sticker.jpg" 
+                src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/sticker.jpg" 
                 alt="Swaad-E-Sehat Logo" 
                 className="w-12 h-12 rounded-full object-cover border-2 border-amber-500 shadow-lg" 
               />

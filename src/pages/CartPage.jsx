@@ -117,7 +117,7 @@ const EmptyCart = () => (
         </p>
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4 max-w-lg mb-8">
           <img 
-            src="/images/MUSCLELADDU.jpg" 
+            src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg" 
             alt="Muscle Laddu" 
             className="w-24 h-24 rounded-md object-cover flex-shrink-0"
           />

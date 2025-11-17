@@ -5,6 +5,13 @@ const sharp = require("sharp");
 const rateLimit = require("express-rate-limit");
 const ImageKit = require("imagekit");
 
+const requiredEnvVars = ['IMAGEKIT_PUBLIC_KEY', 'IMAGEKIT_PRIVATE_KEY', 'IMAGEKIT_URL'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  throw new Error(`Missing required ImageKit environment variables: ${missingVars.join(', ')}`);
+}
+
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,

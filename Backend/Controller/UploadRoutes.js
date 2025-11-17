@@ -39,10 +39,10 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
-      if (!req.file) {
+      if (!req.file || !req.file.buffer || req.file.buffer.length === 0) {
         return res.status(400).json({
           success: false,
-          message: "No file uploaded",
+          message: "Invalid or empty file",
         });
       }
 

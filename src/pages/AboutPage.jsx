@@ -109,7 +109,7 @@ const AboutPage = () => {
             <div className="choose-image order-last lg:order-first">
               
               <img 
-                src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/CHANNA%20DRY%20FRUIT%20PINI.JPG" 
+                src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/CHANA%20DRYFRUIT%20PINNI.JPG" 
                 alt="Our premium dry fruit pinni" 
                 className="rounded-xl shadow-2xl w-full h-auto object-cover"
               />

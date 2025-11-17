@@ -63,7 +63,7 @@ router.post(
             return res.status(500).json({
               success: false,
               message: "Image upload failed",
-              error: err.message,
+              ...(process.env.NODE_ENV === 'development' && { error: err.message }),
             });
           }
 
@@ -79,7 +79,7 @@ router.post(
       res.status(500).json({
         success: false,
         message: "Server error",
-        error: error.message,
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       });
     }
   }

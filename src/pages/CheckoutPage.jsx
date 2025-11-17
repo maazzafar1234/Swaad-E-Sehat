@@ -9,7 +9,8 @@ import {
   FiLock,
   FiArrowLeft,
   FiTruck,
-  FiRefreshCw 
+  FiRefreshCw,
+  FiCheckCircle 
 } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
@@ -39,7 +40,8 @@ const CheckoutPage = () => {
   const calculateSubtotal = () => items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const subtotal = calculateSubtotal();
   const tax = subtotal * 0.18;
-  const total = subtotal ;
+  const shippingCost = subtotal > 500 ? 0 : 150;
+  const total = subtotal + shippingCost;
 
   useEffect(() => {
     if (items.length === 0 && !isProcessing && !isPolling) {
@@ -472,6 +474,7 @@ const CheckoutPage = () => {
               items={items} 
               subtotal={subtotal} 
               tax={tax} 
+              shippingCost={shippingCost}
               total={total}
               isProcessing={isProcessing}
               paymentButtonContent={paymentButtonContent}
@@ -535,11 +538,16 @@ const PaymentOption = ({ title, description, icon, value, currentValue, onChange
   );
 };
 
-const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButtonContent }) => (
+const OrderSummary = ({ items, subtotal, tax, shippingCost, total, isProcessing, paymentButtonContent }) => (
   <div className="bg-white rounded-xl shadow-md sticky top-28">
     <h3 className="text-2xl font-semibold p-6 border-b border-slate-200">
       Order Summary
     </h3>
+    
+    {/* Shipping Progress Message */}
+    <div className="p-6">
+      <ShippingProgress subtotal={subtotal} />
+    </div>
     
     <div className="p-6 space-y-4 max-h-64 overflow-y-auto border-b border-slate-200">
       {items.map((item, index) => (
@@ -565,7 +573,11 @@ const OrderSummary = ({ items, subtotal, tax, total, isProcessing, paymentButton
       </div> */}
       <div className="flex justify-between items-center text-slate-600">
         <span>Shipping</span>
-        <span className="font-medium text-green-600">FREE</span>
+        {shippingCost === 0 ? (
+          <span className="font-medium text-green-600">FREE</span>
+        ) : (
+          <span className="font-medium text-slate-800">₹{shippingCost.toFixed(2)}</span>
+        )}
       </div>
       <div className="border-t border-slate-200 my-3"></div>
       <div className="flex justify-between items-center text-xl font-bold text-slate-900">
@@ -613,5 +625,39 @@ const PaymentWaitingModal = ({ orderId, onClose }) => (
     </div>
   </div>
 );
+
+const ShippingProgress = ({ subtotal }) => {
+  const shippingThreshold = 500;
+  const amountLeft = shippingThreshold - subtotal;
+  const percent = Math.max(0, Math.min((subtotal / shippingThreshold) * 100, 100));
+
+  if (amountLeft <= 0) {
+    return (
+      <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+        <FiCheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+        <p className="text-sm font-medium text-green-700">
+          Congratulations! You've unlocked FREE shipping.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className="flex items-center gap-3">
+        <FiTruck className="w-6 h-6 text-amber-600 flex-shrink-0" />
+        <p className="text-sm font-medium text-amber-700">
+          Add items worth <span className="font-bold">₹{amountLeft.toFixed(2)}</span> more to get FREE shipping.
+        </p>
+      </div>
+      <div className="w-full bg-slate-200 rounded-full h-2.5 mt-3">
+        <div 
+          className="bg-amber-500 h-2.5 rounded-full" 
+          style={{ width: `${percent}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
 
 export default CheckoutPage;

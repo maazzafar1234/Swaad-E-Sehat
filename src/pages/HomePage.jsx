@@ -38,8 +38,8 @@ const HomePage = () => {
       id: product.id,
       price: productPrice,
       originalPrice: originalPrice,
-      variant: 'default',
-      variantName: 'Default',
+      variant: product.default_variant_id || 'default', 
+      variantName: product.default_variant_name || 'Default',
       image: product.images?.[0] || '/images/placeholder.jpg' 
     };
     

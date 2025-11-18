@@ -34,8 +34,8 @@ const ProductsPage = () => {
       ...product,
       price: defaultVariant?.price || product.base_price,
       originalPrice: defaultVariant?.originalPrice || product.base_price,
-      variant: defaultVariant?.id || 'default',
-      variantName: defaultVariant?.name || 'Default',
+      variant: product.default_variant_id || 'default', 
+      variantName: product.default_variant_name || 'Default',
       image: product.images?.[0] || '/images/placeholder.jpg'
     };
     addToCart(productToAdd, quantity);

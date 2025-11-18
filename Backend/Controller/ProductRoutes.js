@@ -26,9 +26,17 @@ router.get("/api/products", async (req, res) => {
     let sql = `
       SELECT 
         p.*, 
-        (SELECT MIN(v.price) FROM product_variants v WHERE v.product_id = p.id) as base_price,
-        (SELECT MIN(v.originalPrice) FROM product_variants v WHERE v.product_id = p.id) as base_original_price
+        v.price as base_price,
+        v.originalPrice as base_original_price,
+        v.variant_id_str as default_variant_id,   -- e.g. "500g"
+        v.name as default_variant_name            -- e.g. "500g Pack"
       FROM products p
+      LEFT JOIN product_variants v ON v.id = (
+          SELECT id FROM product_variants 
+          WHERE product_id = p.id 
+          ORDER BY price ASC, id ASC 
+          LIMIT 1
+      )
     `;
 
     let params = [];

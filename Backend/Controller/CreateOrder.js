@@ -26,10 +26,10 @@ router.post("/api/orders/create", UserDashAuth, async (req, res) => {
       const variantIdentifier = item.variantName || item.variant || 'default';
       
       // Fetch actual product variant from database
-      // Check by variant_id_str, name, or numeric id to handle all cases
+      // Check by variant_id_str, name (case-insensitive), or numeric id to handle all cases
       const [variantRows] = await connection.query(
         `SELECT price, stock, name FROM product_variants 
-         WHERE product_id = ? AND (variant_id_str = ? OR name = ? OR id = ?)`,
+         WHERE product_id = ? AND (variant_id_str = ? OR LOWER(name) = LOWER(?) OR id = ?)`,
         [item.id, variantIdentifier, variantIdentifier, variantIdentifier]
       );
       

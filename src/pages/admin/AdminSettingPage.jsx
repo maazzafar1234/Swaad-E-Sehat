@@ -4,12 +4,12 @@ import { FiSave, FiBell, FiLock, FiGlobe, FiDollarSign } from 'react-icons/fi';
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
     storeName: 'Swaad-E-Sehat',
-    storeEmail: 'admin@swaadesehat.in',
-    storePhone: '+91 9876543210',
-    storeAddress: '123 Sweet Lane, Delhi, India',
-    storeCity: 'Delhi',
-    storeState: 'Delhi',
-    storePincode: '110001',
+    storeEmail: 'brothersfoodie1@gmail.com',
+    storePhone: '+91 81780 63094',
+    storeAddress: 'Gurgaon, Sector 8',
+    storeCity: 'Gurgaon',
+    storeState: 'Haryana',
+    storePincode: '122001',
     currency: 'INR',
     taxPercentage: 18,
     shippingCost: 50,

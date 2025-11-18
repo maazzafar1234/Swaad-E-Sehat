@@ -47,7 +47,7 @@ const HomePage = () => {
   };
 
   const handleWhatsAppContact = () => {
-    const phoneNumber = '8849978818';
+    const phoneNumber = '918178063094';
     const message = 'Hi! I\'m interested in your natural sweets and dry fruits. Can you help me with more information?';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

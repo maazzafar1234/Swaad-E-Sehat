@@ -18,7 +18,7 @@ const ContactPage = () => {
   const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID || 'YOUR_SERVICE_ID';
   const EMAILJS_TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
   const EMAILJS_PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'YOUR_PUBLIC_KEY';
-  const RECIPIENT_EMAIL = 'maazzafar156@gmail.com';
+  const RECIPIENT_EMAIL = 'brothersfoodie1@gmail.com';
 
   const isEmailJSConfigured = () => {
     return EMAILJS_SERVICE_ID !== 'YOUR_SERVICE_ID' && 
@@ -103,19 +103,19 @@ const ContactPage = () => {
               <ContactInfoItem
                 icon={<FiPhone className="w-6 h-6" />}
                 title="Phone"
-                content="+91 88499 78818"
-                href="tel:+918849978818"
+                content="+91 81780 63094"
+                href="tel:+918178063094"
               />
               <ContactInfoItem
                 icon={<FiMail className="w-6 h-6" />}
                 title="Email"
-                content="info@swaad-e-sehat.com"
-                href="mailto:info@swaad-e-sehat.com"
+                content="brothersfoodie1@gmail.com"
+                href="mailto:brothersfoodie1@gmail.com"
               />
               <ContactInfoItem
                 icon={<FiMapPin className="w-6 h-6" />}
                 title="Address"
-                content="Manufacturing & Office Address, Delhi, India"
+                content="Gurgaon, Sector 8"
               />
             </div>
           </div>

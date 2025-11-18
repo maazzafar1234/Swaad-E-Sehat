@@ -93,10 +93,22 @@ const AdminOrderDetail = () => {
                 <span className="text-slate-600">Subtotal:</span>
                 <span className="font-semibold">₹{Number(order.subtotal).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Tax:</span>
-                <span className="font-semibold">₹{Number(order.tax).toFixed(2)}</span>
-              </div>
+              {order.shipping_charges !== undefined && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600">Shipping:</span>
+                  {Number(order.shipping_charges) === 0 ? (
+                    <span className="font-semibold text-green-600">FREE</span>
+                  ) : (
+                    <span className="font-semibold">₹{Number(order.shipping_charges).toFixed(2)}</span>
+                  )}
+                </div>
+              )}
+              {order.tax !== undefined && Number(order.tax) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600">Tax:</span>
+                  <span className="font-semibold">₹{Number(order.tax).toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center text-lg font-bold mt-4 pt-4 border-t-2 border-amber-200 text-amber-900">
                 <span>Total:</span>
                 <span>₹{Number(order.total_amount).toFixed(2)}</span>

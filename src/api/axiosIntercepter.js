@@ -32,8 +32,8 @@ ClientApiInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized! Logging out...");
       
-      localStorage.removeItem('jwt_token');
-      sessionStorage.removeItem('admin_meta');
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('user');
       
       window.location.href = '/'; 
     }

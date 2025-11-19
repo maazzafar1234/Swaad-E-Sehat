@@ -2,12 +2,27 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../Config/db');
 const adminAuth = require('../Middleware/adminAuth');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiter for payment settings GET endpoint
+const paymentSettingsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+
+// Rate limiter for admin payment settings POST endpoint
+const adminPaymentSettingsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
 
 /**
  * GET /api/payment-settings
  * Public endpoint to fetch current payment settings
  */
-router.get('/api/payment-settings', async (req, res) => {
+router.get('/api/payment-settings', paymentSettingsLimiter, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT setting_key, setting_value 
@@ -41,7 +56,7 @@ router.get('/api/payment-settings', async (req, res) => {
  * POST /api/admin/payment-settings
  * Admin-only endpoint to update payment settings
  */
-router.post('/api/admin/payment-settings', adminAuth, async (req, res) => {
+router.post('/api/admin/payment-settings', adminAuth, adminPaymentSettingsLimiter, async (req, res) => {
   try {
     const { cod_enabled, online_payment_enabled } = req.body;
 

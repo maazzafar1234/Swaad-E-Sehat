@@ -91,8 +91,14 @@ const HomePage = () => {
             <div className="flex justify-center">
               <div className="relative group">
                 <img 
-                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG" 
+                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG?tr=w-1600,q-80,f-webp" 
+                  srcSet="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG?tr=w-800,q-80,f-webp 800w,
+                          https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG?tr=w-1200,q-80,f-webp 1200w,
+                          https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/2J1A5029.JPG?tr=w-1600,q-80,f-webp 1600w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
                   alt="Premium Natural Sweets & Dry Fruits"
+                  width="1600"
+                  height="1200"
                   fetchpriority="high"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -183,8 +189,14 @@ const HomePage = () => {
             <div className="flex justify-center order-1 lg:order-2">
               <div className="relative group">
                 <img 
-                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg" 
+                  src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg?tr=w-1200,q-80,f-webp" 
+                  srcSet="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg?tr=w-600,q-80,f-webp 600w,
+                          https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg?tr=w-900,q-80,f-webp 900w,
+                          https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg?tr=w-1200,q-80,f-webp 1200w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
                   alt="Dry Fruit Khajur Pak"
+                  width="1200"
+                  height="1200"
                   loading="lazy"
                   className="rounded-xl shadow-2xl max-w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                 />

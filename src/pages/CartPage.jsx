@@ -115,8 +115,11 @@ const EmptyCart = () => (
         </p>
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row items-center gap-4 max-w-lg mb-8">
           <img 
-            src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg" 
-            alt="Muscle Laddu" 
+            src="https://ik.imagekit.io/swaadesehat/swadesehat-frontent-image/MUSCLELADDU.jpg?tr=w-200,q-80,f-webp" 
+            alt="Muscle Laddu"
+            width="96"
+            height="96"
+            loading="lazy"
             className="w-24 h-24 rounded-md object-cover flex-shrink-0"
           />
           <div className="text-left">
@@ -151,6 +154,9 @@ const CartItem = ({ item, onUpdate, onRemove }) => {
         <img 
           src={item.image || (item.images && item.images[0]) || '/images/placeholder.jpg'} 
           alt={item.name}
+          width="400"
+          height="400"
+          loading="lazy"
           className="w-full h-48 sm:h-full object-cover"
         />
       </div>

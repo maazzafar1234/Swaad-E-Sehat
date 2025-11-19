@@ -603,7 +603,14 @@ const OrderSummary = ({ items, subtotal, shippingCost, total, isProcessing, paym
     <div className="p-6 space-y-4 max-h-64 overflow-y-auto border-b border-slate-200">
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-4">
-          <img src={item.image} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+          <img 
+            src={item.image} 
+            alt={item.name} 
+            width="64" 
+            height="64" 
+            loading="lazy" 
+            className="w-16 h-16 rounded-md object-cover" 
+          />
           <div className="flex-1">
             <h4 className="font-medium text-slate-800 line-clamp-1">{item.name}</h4>
             <p className="text-sm text-slate-500">Qty: {item.quantity}</p>

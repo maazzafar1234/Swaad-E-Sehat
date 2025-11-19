@@ -103,6 +103,9 @@ const WishlistItem = ({ product, onAddToCart, onRemove }) => {
           <img 
             src={product.images?.[0] || product.image} 
             alt={product.name}
+            width="400"
+            height="400"
+            loading="lazy"
             className="w-full h-48 md:h-full object-cover"
           />
         </Link>

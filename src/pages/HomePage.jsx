@@ -62,7 +62,7 @@ const HomePage = () => {
             {/* Hero Text */}
             <div className="flex flex-col gap-6 text-center lg:text-left items-center lg:items-start">
               <h1 className="text-5xl md:text-6xl font-bold text-slate-900 font-serif leading-tight">
-                Premium Natural Sweets & 
+                Premium home made Natural Sweets & 
                 <span className="text-amber-500"> Dry Fruits</span>
               </h1>
               <p className="text-lg text-slate-600 max-w-lg text-balance">
@@ -165,7 +165,7 @@ const HomePage = () => {
             <FeatureCard
               icon={<FiTruck className="w-7 h-7" />}
               title="Free Shipping"
-              description="Free delivery on orders above ₹500 across India."
+              description="Free delivery on orders above ₹1100 across India."
             />
             <FeatureCard
               icon={<FiStar className="w-7 h-7" />}
@@ -199,7 +199,7 @@ const HomePage = () => {
               <span className="inline-block bg-pink-100 text-pink-700 font-semibold px-4 py-1 rounded-full self-start">
                 New Launch
               </span>
-              <h2 className="text-4xl font-bold font-serif text-slate-900">Dry Fruit Khajur Pak</h2>
+              <h2 className="text-4xl font-bold font-serif text-slate-900">Chocolate Muscle Ladoo</h2>
               <p className="text-lg text-slate-600 text-balance">
                 Our latest creation combines the sweetness of dates with the richness of premium dry fruits. 
                 Made using traditional methods and pure ghee.
@@ -270,7 +270,7 @@ const HomePage = () => {
               Ready to Experience Natural Goodness?
             </h2>
             <p className="text-lg text-amber-100 mt-4 mb-8 text-balance">
-              Order now and get 10% off on your first purchase. Free shipping on orders above ₹500.
+              Order now and get 10% off on your first purchase. Free shipping on orders above ₹1100.
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
               <Link 

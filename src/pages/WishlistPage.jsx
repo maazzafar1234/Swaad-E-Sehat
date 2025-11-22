@@ -96,7 +96,11 @@ const WishlistItem = ({ product, onAddToCart, onRemove }) => {
   const isOutOfStock = product.stock === 0;
 
   const handleQuantityChange = (delta) => {
-    setQuantity(prev => Math.max(1, prev + delta));
+    const maxStock = product.stock || 999; // Default to 999 if stock not defined
+    setQuantity(prev => {
+      const newQty = prev + delta;
+      return Math.max(1, Math.min(newQty, maxStock));
+    });
   };
 
   const handleAddToCartWithQuantity = (e) => {
@@ -174,7 +178,7 @@ const WishlistItem = ({ product, onAddToCart, onRemove }) => {
             <button 
               className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
               onClick={() => handleQuantityChange(1)}
-              disabled={isOutOfStock}
+              disabled={isOutOfStock || quantity >= (product.stock || 999)}
               aria-label="Increase quantity"
             >
               +

@@ -6,14 +6,26 @@ const AboutPage = () => {
   return (
     <div className="w-full bg-white pt-20"> {/* Offset for fixed header */}
       
-      {/* --- Section 1: Our Story (Hero) --- */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold font-serif text-slate-900">
+      {/* --- Section 1: Welcome Section --- */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <h1 className="text-5xl md:text-6xl font-bold font-serif text-slate-900 mb-6">
             About Swaad-E-Sehat
           </h1>
+          <h2 className="text-3xl font-bold font-serif text-amber-600 mb-6">
+            Welcome to Swaad-e-Sehat — Taste That Cares
+          </h2>
+          <p className="text-lg text-slate-600 leading-relaxed text-balance mb-6">
+            Welcome to our world of pure taste, health, and tradition — where every sweet is more than just food; it's a piece of love, care, and homemade goodness.
+          </p>
+          <p className="text-lg text-slate-600 leading-relaxed text-balance">
+            At Swaad-e-Sehat, we believe that indulgence can also be nourishing. Our sweets are handcrafted in small batches, using premium natural ingredients and pure desi ghee — combining authentic taste with a healthy twist.
+          </p>
         </div>
+      </section>
 
+      {/* --- Section 2: Our Story --- */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="story-text">
             <h2 className="text-3xl font-bold font-serif text-amber-600 mb-6">Our Story</h2>
@@ -32,7 +44,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* --- Section 2: Our Values --- */}
+      {/* --- Section 3: Our Values --- */}
       <section className="bg-slate-50 py-20 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -67,7 +79,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* --- Section 3: Our Process --- */}
+      {/* --- Section 4: Our Process --- */}
       <section className="bg-white py-20 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -102,7 +114,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* --- Section 4: Why Choose Us --- */}
+      {/* --- Section 5: Why Choose Us --- */}
       <section className="bg-slate-50 py-20 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -145,7 +157,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* --- Section 5: Our Promise --- */}
+      {/* --- Section 6: Our Promise --- */}
       <section className="bg-white py-20 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
@@ -165,7 +177,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* --- Section 6: CTA --- */}
+      {/* --- Section 7: CTA --- */}
       <section className="py-24 bg-amber-500">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">

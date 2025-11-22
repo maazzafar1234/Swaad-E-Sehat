@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingCart, FiTrash2 } from 'react-icons/fi';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,10 +9,10 @@ const WishlistPage = () => {
   const { addToCart } = useCart();
 
   // --- Handlers ---
-  const handleAddToCart = (e, product) => {
+  const handleAddToCart = (e, product, quantity = 1) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1);
+    addToCart(product, quantity);
     removeFromWishlist(product.id);
   };
 
@@ -87,12 +87,23 @@ const WishlistPage = () => {
 
 // --- Helper Component for each Wishlist Item ---
 const WishlistItem = ({ product, onAddToCart, onRemove }) => {
+  const [quantity, setQuantity] = useState(1);
   const price = product.salePrice || product.price;
   const originalPrice = product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   
   // Basic stock check (assuming `product.stock` exists)
   const isOutOfStock = product.stock === 0;
+
+  const handleQuantityChange = (delta) => {
+    setQuantity(prev => Math.max(1, prev + delta));
+  };
+
+  const handleAddToCartWithQuantity = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddToCart(e, product, quantity);
+  };
 
   return (
     <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-md overflow-hidden transition-shadow hover:shadow-lg">
@@ -147,9 +158,32 @@ const WishlistItem = ({ product, onAddToCart, onRemove }) => {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-4 mt-auto pt-4 border-t border-slate-100">
+          {/* Quantity Selector */}
+          <div className="flex items-center gap-3">
+            <button 
+              className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1 || isOutOfStock}
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-12 text-center font-semibold text-lg text-slate-900">
+              {quantity}
+            </span>
+            <button 
+              className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              onClick={() => handleQuantityChange(1)}
+              disabled={isOutOfStock}
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+          
           <button 
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 font-semibold text-white bg-amber-500 rounded-lg shadow-md hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={(e) => onAddToCart(e, product)}
+            onClick={handleAddToCartWithQuantity}
             disabled={isOutOfStock}
           >
             <FiShoppingCart className="w-5 h-5" />

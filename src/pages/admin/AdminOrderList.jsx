@@ -256,7 +256,7 @@ const AdminOrderList = () => {
                       <td className="p-5">
                         <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r ${orderConfig.bg} ${orderConfig.text} border border-white/60 shadow-sm`}>
                           {orderConfig.icon}
-                          {order.order_status}
+                          {order.order_status.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="p-5">

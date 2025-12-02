@@ -33,7 +33,7 @@ ClientApiInstance.interceptors.response.use(
       console.error("Unauthorized! Logging out...");
       
       localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
       
       window.location.href = '/'; 
     }

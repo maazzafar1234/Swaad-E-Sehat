@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiLoader, FiEye, FiSearch, FiFilter, FiDownload, FiPackage, FiClock } from 'react-icons/fi';
+import { FiEye, FiSearch, FiFilter, FiDownload, FiPackage, FiClock } from 'react-icons/fi';
 import { Package, ShoppingBag, CheckCircle, XCircle, Clock, Truck } from 'lucide-react';
 import ClientApiInstance from '../../api/axiosIntercepter';
 import { toast } from 'react-toastify';

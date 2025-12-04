@@ -304,7 +304,7 @@ router.get('/payment/callback', async (req, res) => {
       try {
         await decreaseStockForOrder(orderId);
         await UpdateProduct_order_status(orderId);
-      } catch (e) { console.error("Stock/status update error", e.message); }
+      } catch (e) { console.error(`❌ Stock/status update failed for order ${orderId}:`, e.message); }
 
       // Send Emails
       try {

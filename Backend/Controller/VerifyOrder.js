@@ -251,7 +251,7 @@ async function Updateorder_status (orderId) {
 
 // Validation helpers for payment callback
 const VALID_PAYMENT_STATUSES = ['SUCCESS', 'PENDING', 'FAILED', 'FAILURE', 'TIMEOUT', 'EXPIRED', 'CANCELLED'];
-const ORDER_ID_REGEX = /^SWAAD_\d{13,}$/;
+const ORDER_ID_REGEX = /^SWAAD_\d{13,20}$/;
 
 function isValidOrderId(orderId) {
   return typeof orderId === 'string' && 
@@ -275,13 +275,13 @@ router.get('/payment/callback', async (req, res) => {
 
     // Validate orderId format
     if (!orderId || !isValidOrderId(orderId)) {
-      console.warn(`⚠️ Invalid orderId format: ${orderId}`);
+      console.warn(`⚠️ Invalid orderId format received`);
       return res.redirect(`${FRONTEND_URL}/order-confirmation?status=failed&error=invalid_order_id`);
     }
 
     // Validate status if provided
     if (status && !isValidStatus(status)) {
-      console.warn(`⚠️ Invalid status value: ${status}`);
+      console.warn(`⚠️ Invalid status value received`);
       return res.redirect(`${FRONTEND_URL}/order-confirmation?orderId=${encodeURIComponent(orderId)}&status=failed&error=invalid_status`);
     }
 

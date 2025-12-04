@@ -300,10 +300,11 @@ router.get('/payment/callback', async (req, res) => {
     );
 
     if (verifiedStatus === 'paid') {
-      // Decrease Stock
+      // Decrease Stock and Update Order Status
       try {
-        await decreaseStockForOrder(orderId); 
-      } catch (e) { console.error("Stock error", e.message); }
+        await decreaseStockForOrder(orderId);
+        await UpdateProduct_order_status(orderId);
+      } catch (e) { console.error("Stock/status update error", e.message); }
 
       // Send Emails
       try {

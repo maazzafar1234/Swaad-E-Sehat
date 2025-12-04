@@ -249,6 +249,22 @@ async function Updateorder_status (orderId) {
   );
 }
 
+// Validation helpers for payment callback
+const VALID_PAYMENT_STATUSES = ['SUCCESS', 'PENDING', 'FAILED', 'FAILURE', 'TIMEOUT', 'EXPIRED', 'CANCELLED'];
+const ORDER_ID_REGEX = /^SWAAD_\d{13,}$/;
+
+function isValidOrderId(orderId) {
+  return typeof orderId === 'string' && 
+         orderId.length <= 50 && 
+         ORDER_ID_REGEX.test(orderId);
+}
+
+function isValidStatus(status) {
+  return typeof status === 'string' && 
+         status.length <= 20 && 
+         VALID_PAYMENT_STATUSES.includes(status);
+}
+
 router.get('/payment/callback', async (req, res) => {
   const { status, orderId } = req.query;
 
@@ -257,8 +273,16 @@ router.get('/payment/callback', async (req, res) => {
   try {
     console.log(`🔄 Payment Redirect received: Order ${orderId}, Status ${status}`);
 
-    if (!orderId) {
-      return res.redirect(`${FRONTEND_URL}/order-confirmation?status=failed&error=missing_id`);
+    // Validate orderId format
+    if (!orderId || !isValidOrderId(orderId)) {
+      console.warn(`⚠️ Invalid orderId format: ${orderId}`);
+      return res.redirect(`${FRONTEND_URL}/order-confirmation?status=failed&error=invalid_order_id`);
+    }
+
+    // Validate status if provided
+    if (status && !isValidStatus(status)) {
+      console.warn(`⚠️ Invalid status value: ${status}`);
+      return res.redirect(`${FRONTEND_URL}/order-confirmation?orderId=${encodeURIComponent(orderId)}&status=failed&error=invalid_status`);
     }
 
     if (status === 'TIMEOUT' || status === 'FAILURE' || status === 'FAILED') {
